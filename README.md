@@ -1,8 +1,8 @@
-# JeoMasky
+# JoeMasky
 
-**JeoMasky Shoes & Bags — Digital Storefront & Order Management Platform**
+**JoeMasky Shoes & Bags — Digital Storefront & Order Management Platform**
 
-JeoMasky is a digital storefront and order management platform built for **JeoMasky Shoes & Bags**. It provides customers with a simple way to browse available products, place orders, select a delivery or pickup option, and communicate directly with the shop.
+JoeMasky is a digital storefront and order management platform built for **JoeMasky Shoes & Bags**. It provides customers with a simple way to browse available products, place orders, select a delivery or pickup option, and communicate directly with the shop.
 
 The platform also provides an administrative interface for managing products and customer orders.
 
@@ -34,7 +34,7 @@ The platform also provides an administrative interface for managing products and
 ## Project Structure
 
 ```text
-jeomasky/
+joemasky/
 ├── apps/
 │   ├── api/                 # Backend API
 │   │   └── Dockerfile
