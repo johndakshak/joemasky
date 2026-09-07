@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "module": "nodenext",
-    "target": "esnext",
+    "moduleResolution": "nodenext",
+    "target": "ES2023",
     "rootDir": "./src",
     "outDir": "./dist",
     "esModuleInterop": true,
