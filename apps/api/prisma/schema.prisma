@@ -12,3 +12,70 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum DeliveryMethod {
+  PICKUP
+  DELIVERY
+}
+
+enum OrderStatus {
+  PENDING
+  PARTIALLY_CONFIRMED
+  CONFIRMED
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+enum ItemAvailability {
+  AVAILABLE
+  UNAVAILABLE
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  isAvailable Boolean  @default(true)
+  categoryId  Int
+  orderItems OrderItem[]
+  category    Category @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Order {
+  id             Int            @id @default(autoincrement())
+  publicToken    String         @unique @default(uuid())
+  customerName   String
+  customerPhone  String
+  deliveryMethod DeliveryMethod
+  deliveryInfo   String?
+  status         OrderStatus    @default(PENDING)
+  items          OrderItem[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model OrderItem {
+  id           Int              @id @default(autoincrement())
+  orderId      Int
+  order        Order            @relation(fields: [orderId], references: [id])
+  productId    Int
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  productName  String
+  unitPrice    Decimal          @db.Decimal(10, 2)
+  quantity     Int
+  availability ItemAvailability @default(AVAILABLE)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
