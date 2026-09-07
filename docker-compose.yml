@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: root
       POSTGRES_DB: joemasky_db
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
