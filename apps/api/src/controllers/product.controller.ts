@@ -3,6 +3,7 @@ import * as productService from "../services/product.service";
 import * as categoryService from "../services/category.service"
 import { CreateProductInput, UpdateProductInput } from "../types/product.types";
 import { Prisma } from "../generated/prisma/client";
+import { uploadImageBuffer } from "../lib/cloudinary";
 
 // GET ALL PRODUCTS
 export async function getAllProducts(req: Request, res: Response) {
@@ -78,6 +79,8 @@ export async function createProduct(req: Request, res: Response) {
         });
     }
 
+    const priceNum = Number(price);
+
     if (price === undefined || price === null) {
         return res.status(400).json({
             success: false,
@@ -85,12 +88,12 @@ export async function createProduct(req: Request, res: Response) {
         });
     }    
 
-    if (typeof price !== "number" || isNaN(price) || price <= 0) {
+    if (isNaN(priceNum) || priceNum <= 0) {
         return res.status(400).json({
             success: false,
             message: "price must be a positive number"
         });
-    }    
+    }  
 
     const categoryIdNum = Number(categoryId);   
 
@@ -101,22 +104,32 @@ export async function createProduct(req: Request, res: Response) {
         });
     }    
 
+    const categoryExists = await categoryService.findCategoryById(categoryIdNum); 
+
+    if (!categoryExists) {
+        return res.status(404).json({
+            success: false,
+            message: "CategoryId not found"
+        });
+    }   
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Product image is required"
+      });
+    }
+
+    const imageUrl = await uploadImageBuffer(req.file.buffer, "joemasky/products");
+
     const productData: CreateProductInput = {
       name,
       description,
-      price,
+      price: priceNum,
       categoryId: categoryIdNum,   
       isAvailable,
+      imageUrl,
     };
-
-    const categoryExists = await categoryService.findCategoryById(categoryIdNum); 
-
-        if (!categoryExists) {
-            return res.status(404).json({
-                success: false,
-                message: "CategoryId not found"
-            });
-        }   
 
     const product = await productService.createProduct(productData);
 
@@ -205,6 +218,10 @@ export async function updateProduct(req: Request, res: Response) {
       categoryId: categoryIdNum,
       isAvailable,
     };
+
+    if (req.file) {
+      productData.imageUrl = await uploadImageBuffer(req.file.buffer, "joemasky/products");
+    }
 
     const product = await productService.updateProduct(id, productData);
 
