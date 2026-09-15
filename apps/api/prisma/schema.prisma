@@ -32,6 +32,11 @@ enum ItemAvailability {
   UNAVAILABLE
 }
 
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+}
+
 model Category {
   id        Int       @id @default(autoincrement())
   name      String    @unique
@@ -79,4 +84,29 @@ model OrderItem {
   availability ItemAvailability @default(AVAILABLE)
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
+}
+
+model Admin {
+  id             Int           @id @default(autoincrement())
+  name           String
+  email          String        @unique
+  password       String
+  role           AdminRole     @default(ADMIN)
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  invitesCreated AdminInvite[] @relation("InviteCreator")
+  invitesUsed    AdminInvite[] @relation("InviteUser")
+}
+
+model AdminInvite {
+  id          Int       @id @default(autoincrement())
+  token       String    @unique @default(uuid())
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdById Int
+  createdBy   Admin     @relation("InviteCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  usedById    Int?
+  usedBy      Admin?    @relation("InviteUser", fields: [usedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
 }
