@@ -1,11 +1,9 @@
 import { Request, Response } from "express";
 import * as adminService from "../services/admin.service";
 import bcrypt from "bcrypt";
-
+import jwt, { SignOptions } from "jsonwebtoken";
 
 // ADMIN LOGIN (AUTHENTICATION)
-import jwt from "jsonwebtoken";
-
 export async function login(req: Request, res: Response) {
 
   try {
@@ -68,7 +66,7 @@ export async function login(req: Request, res: Response) {
     const token = jwt.sign(
       { id: admin.id, role: admin.role },
       process.env.JWT_SECRET as string,
-      { expiresIn: "1d" }
+      { expiresIn: process.env.JWT_EXPIRES_IN as SignOptions["expiresIn"] }
     );
 
     return res.status(200).json({
