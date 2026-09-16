@@ -33,6 +33,23 @@ export async function createCategory(data: CreateCategoryInput) {
 
 // UPDATE CATEGORY
 export async function updateCategory(categoryId: number, data: UpdateCategoryInput) {
+
+  if (data.name !== undefined) {
+    const existing = await prisma.category.findFirst({
+      where: {
+        id: { not: categoryId },
+        name: {
+          equals: data.name,
+          mode: "insensitive",
+        },
+      },
+    });
+
+    if (existing) {
+      throw new Error("DUPLICATE_CATEGORY_NAME");
+    }
+  }
+
   return prisma.category.update({
     where: { id: categoryId },
     data,

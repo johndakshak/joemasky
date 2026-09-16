@@ -4,6 +4,7 @@ import * as categoryService from "../services/category.service"
 import { CreateProductInput, UpdateProductInput } from "../types/product.types";
 import { Prisma } from "../generated/prisma/client";
 import { uploadImageBuffer } from "../lib/cloudinary";
+import { validateName, validatePrice } from "../utils/validation";
 
 // GET ALL PRODUCTS
 export async function getAllProducts(req: Request, res: Response) {
@@ -72,28 +73,16 @@ export async function createProduct(req: Request, res: Response) {
 
     const { name, description, price, categoryId, isAvailable } = req.body;
 
-    if (!name) {
-        return res.status(400).json({
-            success: false,
-            message: "name is required"
-        });
-    }
-
-    const priceNum = Number(price);
-
-    if (price === undefined || price === null) {
-        return res.status(400).json({
-            success: false,
-            message: "price is required"
-        });
-    }    
-
-    if (isNaN(priceNum) || priceNum <= 0) {
-        return res.status(400).json({
-            success: false,
-            message: "price must be a positive number"
-        });
+    const nameError = validateName(name);
+    if (nameError) {
+      return res.status(400).json({ success: false, message: nameError });
     }  
+
+    const priceError = validatePrice(price);
+    if (priceError) {
+      return res.status(400).json({ success: false, message: priceError });
+    }
+    const priceNum = Number(price);
 
     const categoryIdNum = Number(categoryId);   
 
@@ -172,21 +161,17 @@ export async function updateProduct(req: Request, res: Response) {
     const { name, description, price, categoryId, isAvailable } = req.body;
 
     if (name !== undefined) {
-      if (typeof name !== "string" || !name) {
-        return res.status(400).json({
-          success: false,
-          message: "name must be a non-empty string"
-        });
+      const nameError = validateName(name);
+      if (nameError) {
+        return res.status(400).json({ success: false, message: nameError });
       }
-    }    
+    } 
 
     if (price !== undefined) {
-        if (typeof price !== "number" || isNaN(price) || price <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: "price must be a positive number"
-            });
-        }
+      const priceError = validatePrice(price);
+      if (priceError) {
+        return res.status(400).json({ success: false, message: priceError });
+      }
     }
 
     let categoryIdNum: number | undefined;
