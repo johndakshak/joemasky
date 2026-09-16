@@ -1,6 +1,10 @@
 import express from "express";
 import productRoutes from "./routes/product.routes";
-import categoryRoutes from "./routes/category.routes"
+import categoryRoutes from "./routes/category.routes";
+import adminRoutes from "./routes/admin.routes";
+import superAdminRoutes from "./routes/superAdmin.routes";
+import authRoutes from "./routes/auth.routes";
+
 
 const app = express();
 
@@ -14,6 +18,9 @@ app.get("/health", (req, res) => {
 
 app.use("/", productRoutes);
 app.use("/", categoryRoutes);
+app.use("/", adminRoutes);
+app.use("/", superAdminRoutes);
+app.use("/", authRoutes);
 
 // Catch-all for unmatched routes.
 app.use((req, res) => {
