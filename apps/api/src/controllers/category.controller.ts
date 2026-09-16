@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import * as categoryService from "../services/category.service";
 import { CreateCategoryInput, UpdateCategoryInput } from "../types/category.types";
 import { Prisma } from "../generated/prisma/client";
+import { validateName } from "../utils/validation";
 
 // GET ALL CATEGORIES
 export async function getAllCategories(req: Request, res: Response) {
@@ -70,19 +71,10 @@ export async function createCategory(req: Request, res: Response) {
 
     const { name } = req.body;
 
-    if (!name) {
-      return res.status(400).json({
-        success: false,
-        message: "name is required"
-      });
-    }
-
-    if (typeof name !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "name must be a string"
-      });
-    }    
+    const nameError = validateName(name);
+    if (nameError) {
+      return res.status(400).json({ success: false, message: nameError });
+    }     
 
     const categoryData: CreateCategoryInput = { name };
 
@@ -140,19 +132,12 @@ export async function updateCategory(req: Request, res: Response) {
 
     const { name } = req.body;
 
-    if (name !== undefined && !name) {
-      return res.status(400).json({
-        success: false,
-        message: "name cannot be empty"
-      });
-    }
-
-    if (typeof name !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "name must be a string"
-      });
-    }    
+    if (name !== undefined) {
+      const nameError = validateName(name);
+      if (nameError) {
+        return res.status(400).json({ success: false, message: nameError });
+      }
+    } 
 
     const categoryData: UpdateCategoryInput = { name };
 
@@ -165,6 +150,13 @@ export async function updateCategory(req: Request, res: Response) {
 
   }
   catch (error) {
+    if (error instanceof Error && error.message === "DUPLICATE_CATEGORY_NAME") {
+      return res.status(409).json({
+        success: false,
+        message: "Category name already exists"
+      });
+    }
+
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
       return res.status(404).json({
         success: false,
