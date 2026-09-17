@@ -1,3 +1,5 @@
+
+// VALIDATE NAME
 export function validateName(value: unknown, minLength = 2): string | null {
     if (!value) {
         return "name is required"
@@ -14,6 +16,7 @@ export function validateName(value: unknown, minLength = 2): string | null {
     return null;
 }
 
+// VALIDATE EMAIL
 export function validateEmail(value: unknown): string | null {
   if (typeof value !== "string") {
     return "email must be a string";
@@ -24,6 +27,7 @@ export function validateEmail(value: unknown): string | null {
   return null;
 }
 
+// VALIDATE PASSWORD
 export function validatePassword(value: unknown): string | null {
   if (typeof value !== "string") {
     return "password must be a string";
@@ -46,6 +50,7 @@ export function validatePassword(value: unknown): string | null {
   return null;
 }
 
+// VALIDATE PRICE
 export function validatePrice(value: unknown): string | null {
   const num = Number(value);
 
@@ -58,5 +63,20 @@ export function validatePrice(value: unknown): string | null {
   if (num <= 0) {
     return "price must be a positive number";
   }
+  return null;
+}
+
+// VALIDATE PHONE NUMBER
+export function validatePhone(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return "customerPhone must be a string";
+  }
+
+  const nigerianPhoneRegex = /^(?:\+234|0)[789][01]\d{8}$/;
+
+  if (!nigerianPhoneRegex.test(value)) {
+    return "customerPhone must be a valid Nigerian phone number";
+  }
+
   return null;
 }

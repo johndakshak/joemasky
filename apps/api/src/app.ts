@@ -4,6 +4,7 @@ import categoryRoutes from "./routes/category.routes";
 import adminRoutes from "./routes/admin.routes";
 import superAdminRoutes from "./routes/superAdmin.routes";
 import authRoutes from "./routes/auth.routes";
+import orderRoutes from "./routes/order.routes";
 
 
 const app = express();
@@ -21,6 +22,7 @@ app.use("/", categoryRoutes);
 app.use("/", adminRoutes);
 app.use("/", superAdminRoutes);
 app.use("/", authRoutes);
+app.use("/", orderRoutes);
 
 // Catch-all for unmatched routes.
 app.use((req, res) => {
