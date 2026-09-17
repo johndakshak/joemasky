@@ -45,3 +45,11 @@ export async function createOrder(input: CreateOrderInput, products: Product[]) 
     });    
   });
 }
+
+// FIND ORDER BY PUBLIC TOKEN
+export async function findOrderByPublicToken(publicToken: string) {
+  return prisma.order.findUnique({
+    where: { publicToken },
+    include: { items: true },
+  });
+}
