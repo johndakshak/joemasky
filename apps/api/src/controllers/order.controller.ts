@@ -101,3 +101,41 @@ export async function create(req: Request, res: Response) {
     });
   }
 }
+
+// GET ORDER BY PUBLIC TOKEN
+export async function getByPublicToken(req: Request, res: Response) {
+
+  try {
+
+    const { publicToken } = req.params;
+
+    if (typeof publicToken !== "string") {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid order token"
+        });
+    }    
+
+    const order = await orderService.findOrderByPublicToken(publicToken);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: order
+    });
+
+  }
+  catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch order"
+    });
+  }
+}
