@@ -278,7 +278,7 @@ export async function updateOrderStatus(req: Request, res: Response) {
   }
 }
 
-// MARK ITEM AVAILABILITY
+// MARK ITEM AVAILABILITY (ADMIN)
 export async function markItemAvailability(req: Request, res: Response) {
 
   try {
@@ -363,7 +363,7 @@ export async function markItemAvailability(req: Request, res: Response) {
   }
 }
 
-// REVIEW ORDER
+// REVIEW ORDER (ADMIN)
 export async function reviewOrder(req: Request, res: Response) {
 
   try {
@@ -405,6 +405,96 @@ export async function reviewOrder(req: Request, res: Response) {
     return res.status(500).json({
       success: false,
       message: "Failed to review order"
+    });
+  }
+}
+
+// ACCEPT ORDER (CUSTOMER)
+export async function acceptOrder(req: Request, res: Response) {
+
+  try {
+
+    const { publicToken } = req.params;
+
+    if (typeof publicToken !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order token"
+      });
+    }
+
+    const order = await orderService.respondToOrder(publicToken, "ACCEPT");
+
+    return res.status(200).json({
+      success: true,
+      data: order
+    });
+
+  }
+  catch (error) {
+    if (error instanceof Error && error.message === "ORDER_NOT_FOUND") {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    if (error instanceof Error && error.message === "ORDER_NOT_REVIEWABLE") {
+      return res.status(409).json({
+        success: false,
+        message: "This order is not awaiting confirmation"
+      });
+    }
+
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to accept order"
+    });
+  }
+}
+
+// DECLINE ORDER (CUSTOMER)
+export async function declineOrder(req: Request, res: Response) {
+
+  try {
+
+    const { publicToken } = req.params;
+
+    if (typeof publicToken !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order token"
+      });
+    }
+
+    const order = await orderService.respondToOrder(publicToken, "DECLINE");
+
+    return res.status(200).json({
+      success: true,
+      data: order
+    });
+
+  }
+  catch (error) {
+    if (error instanceof Error && error.message === "ORDER_NOT_FOUND") {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    if (error instanceof Error && error.message === "ORDER_NOT_REVIEWABLE") {
+      return res.status(409).json({
+        success: false,
+        message: "This order is not awaiting confirmation"
+      });
+    }
+
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to decline order"
     });
   }
 }
