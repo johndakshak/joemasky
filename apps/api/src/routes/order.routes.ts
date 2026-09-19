@@ -13,4 +13,7 @@ router.patch("/admin/orderStatus/:id", requireAdmin, orderController.updateOrder
 router.patch("/order/:orderId/items/:itemId/availability", requireAdmin, orderController.markItemAvailability);
 router.post("/order/:orderId/review-orders", requireAdmin, orderController.reviewOrder);
 
+router.post("/order/:publicToken/accept", orderController.acceptOrder);
+router.post("/order/:publicToken/decline", orderController.declineOrder);
+
 export default router;

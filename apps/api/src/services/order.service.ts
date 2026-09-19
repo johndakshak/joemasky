@@ -72,7 +72,7 @@ export async function findOrderById(id: number) {
   });
 }
 
-// UPDATE ORDER STATUS
+// UPDATE ORDER STATUS (ADMIN)
 export async function updateOrderStatus(id: number, status: OrderStatus) {
   return prisma.order.update({
     where: { id },
@@ -106,7 +106,7 @@ export async function markItemAvailability(
   });
 }
 
-// REVIEW ORDER
+// REVIEW ORDER (ADMIN)
 export async function reviewOrder(orderId: number) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -135,4 +135,26 @@ export async function reviewOrder(orderId: number) {
   }
 
   return updateOrderStatus(orderId, newStatus);
+}
+
+// RESPOND TO ORDER (CUSTOMER)
+export async function respondToOrder(publicToken: string, decision: "ACCEPT" | "DECLINE") {
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.order.findUnique({ where: { publicToken } });
+
+    if (!order) {
+      throw new Error("ORDER_NOT_FOUND");
+    }
+
+    if (order.status !== "PARTIALLY_CONFIRMED") {
+      throw new Error("ORDER_NOT_REVIEWABLE");
+    }
+
+    const newStatus = decision === "ACCEPT" ? "CONFIRMED" : "CANCELLED";
+
+    return tx.order.update({
+      where: { publicToken },
+      data: { status: newStatus },
+    });
+  });
 }
