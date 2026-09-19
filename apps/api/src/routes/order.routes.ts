@@ -10,4 +10,7 @@ router.get("/admin/Orders", requireAdmin, orderController.getAllOrders);
 router.get("/admin/order/:id", requireAdmin, orderController.getOrderById);
 router.patch("/admin/orderStatus/:id", requireAdmin, orderController.updateOrderStatus);
 
+router.patch("/order/:orderId/items/:itemId/availability", requireAdmin, orderController.markItemAvailability);
+router.post("/order/:orderId/review-orders", requireAdmin, orderController.reviewOrder);
+
 export default router;

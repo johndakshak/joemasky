@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma";
 import { CreateOrderInput } from "../types/order.types";
 import { Product } from "../generated/prisma/client";
 import { OrderStatus } from "../generated/prisma/client";
+import { ItemAvailability } from "../generated/prisma/client";
 
 
 // FIND PRODUCTS BY ID's (ARRAY OF PRODUCT ID's)
@@ -77,4 +78,61 @@ export async function updateOrderStatus(id: number, status: OrderStatus) {
     where: { id },
     data: { status },
   });
+}
+
+// MARK ITEM AVAILABILITY
+export async function markItemAvailability(
+  orderId: number,
+  itemId: number,
+  availability: ItemAvailability
+) {
+  return prisma.$transaction(async (tx) => {
+    const currentOrder = await tx.order.findUnique({ where: { id: orderId } });
+
+    if (!currentOrder || (currentOrder.status !== "PENDING" && currentOrder.status !== "UNAVAILABLE")) {
+      throw new Error("ORDER_STATE_CHANGED");
+    }
+
+    const item = await tx.orderItem.findUnique({ where: { id: itemId } });
+
+    if (!item || item.orderId !== orderId) {
+      throw new Error("ITEM_NOT_IN_ORDER");
+    }
+
+    return tx.orderItem.update({
+      where: { id: itemId },
+      data: { availability },
+    });
+  });
+}
+
+// REVIEW ORDER
+export async function reviewOrder(orderId: number) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: true },
+  });
+
+  if (!order) {
+    return null;
+  }
+
+  if (order.items.length === 0) {
+    throw new Error("ORDER_HAS_NO_ITEMS");
+  }  
+
+  const allAvailable = order.items.every((item) => item.availability === "AVAILABLE");
+  const allUnavailable = order.items.every((item) => item.availability === "UNAVAILABLE");
+
+  let newStatus: OrderStatus;
+
+  if (allAvailable) {
+    newStatus = "CONFIRMED";
+  } else if (allUnavailable) {
+    newStatus = "UNAVAILABLE";
+  } else {
+    newStatus = "PARTIALLY_CONFIRMED";
+  }
+
+  return updateOrderStatus(orderId, newStatus);
 }
