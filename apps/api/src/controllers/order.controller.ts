@@ -216,7 +216,7 @@ export async function updateOrderStatus(req: Request, res: Response) {
 
     const validStatuses = [
       "PENDING", "PARTIALLY_CONFIRMED", "CONFIRMED",
-      "PROCESSING", "COMPLETED", "CANCELLED",
+      "PROCESSING", "COMPLETED", "CANCELLED", "UNAVAILABLE",
     ];
 
     if (!validStatuses.includes(status)) {
@@ -236,12 +236,13 @@ export async function updateOrderStatus(req: Request, res: Response) {
     }
 
     const validTransitions: Record<string, string[]> = {
-      PENDING: ["CONFIRMED", "PARTIALLY_CONFIRMED", "CANCELLED"],
+      PENDING: ["CONFIRMED", "PARTIALLY_CONFIRMED", "CANCELLED", "UNAVAILABLE"],
       PARTIALLY_CONFIRMED: ["CONFIRMED", "CANCELLED"],
       CONFIRMED: ["PROCESSING", "CANCELLED"],
       PROCESSING: ["COMPLETED", "CANCELLED"],
       COMPLETED: [],
       CANCELLED: [],
+      UNAVAILABLE: ["CANCELLED"],
     };
 
     if (status === existingOrder.status) {
@@ -273,6 +274,137 @@ export async function updateOrderStatus(req: Request, res: Response) {
     return res.status(500).json({
       success: false,
       message: "Failed to update order status"
+    });
+  }
+}
+
+// MARK ITEM AVAILABILITY
+export async function markItemAvailability(req: Request, res: Response) {
+
+  try {
+
+    const orderId = Number(req.params.orderId);
+    const itemId = Number(req.params.itemId);
+
+    if (isNaN(orderId) || isNaN(itemId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order ID or item ID"
+      });
+    }
+
+    if (!req.body || typeof req.body !== "object") {
+      return res.status(400).json({
+        success: false,
+        message: "Request body is required"
+      });
+    }    
+
+    const { availability } = req.body;
+
+    if (availability !== "AVAILABLE" && availability !== "UNAVAILABLE") {
+      return res.status(400).json({
+        success: false,
+        message: "availability must be either AVAILABLE or UNAVAILABLE"
+      });
+    }
+
+    const order = await orderService.findOrderById(orderId);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    if (order.status !== "PENDING" && order.status !== "UNAVAILABLE") {
+      return res.status(400).json({
+        success: false,
+        message: "Order is not in a reviewable state"
+      });
+    }
+
+    const item = await orderService.markItemAvailability(orderId, itemId, availability);
+
+    return res.status(200).json({
+      success: true,
+      data: item
+    });
+
+  }
+  catch (error) {
+    if (error instanceof Error && error.message === "ORDER_STATE_CHANGED") {
+      return res.status(409).json({
+        success: false,
+        message: "Order status changed before update could complete — please retry"
+      });
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found"
+      });
+    }
+
+    if (error instanceof Error && error.message === "ITEM_NOT_IN_ORDER") {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found in this order"
+      });
+    }    
+
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update item availability"
+    });
+  }
+}
+
+// REVIEW ORDER
+export async function reviewOrder(req: Request, res: Response) {
+
+  try {
+
+    const orderId = Number(req.params.orderId);
+
+    if (isNaN(orderId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order ID"
+      });
+    }
+
+    const updatedOrder = await orderService.reviewOrder(orderId);
+
+    if (!updatedOrder) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: updatedOrder
+    });
+
+  }
+  catch (error) {
+
+    if (error instanceof Error && error.message === "ORDER_HAS_NO_ITEMS") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot review an order with no items"
+      });
+    }
+
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to review order"
     });
   }
 }
