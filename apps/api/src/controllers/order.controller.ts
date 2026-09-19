@@ -3,9 +3,10 @@ import { Request, Response } from "express";
 import { validateName, validatePhone } from "../utils/validation";
 import * as orderService from "../services/order.service"
 import { Prisma } from "../generated/prisma/client";
+import { calculateOrderTotal } from "../utils/order";
 
 // CREATE ORDER
-export async function create(req: Request, res: Response) {
+export async function createOrder(req: Request, res: Response) {
 
   try {
 
@@ -88,9 +89,19 @@ export async function create(req: Request, res: Response) {
 
     const order = await orderService.createOrder(orderInput, products);
 
+    if (!order) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to create order"
+      });
+    }    
+
     return res.status(201).json({
       success: true,
-      data: order
+      data: {
+        ...order,
+        totalAmount: calculateOrderTotal(order.items),
+      }
     });
 
   }
@@ -104,7 +115,7 @@ export async function create(req: Request, res: Response) {
 }
 
 // GET ORDER BY PUBLIC TOKEN
-export async function getByPublicToken(req: Request, res: Response) {
+export async function getOrderByPublicToken(req: Request, res: Response) {
 
   try {
 
@@ -128,7 +139,10 @@ export async function getByPublicToken(req: Request, res: Response) {
 
     return res.status(200).json({
       success: true,
-      data: order
+      data: {
+        ...order,
+        totalAmount: calculateOrderTotal(order.items),
+      }
     });
 
   }
@@ -145,7 +159,13 @@ export async function getByPublicToken(req: Request, res: Response) {
 export async function getAllOrders(req: Request, res: Response) {
   try {
     const orders = await orderService.findAllOrders();
-    return res.status(200).json({ success: true, data: orders });
+
+    const ordersWithTotals = orders.map(order => ({
+      ...order,
+      totalAmount: calculateOrderTotal(order.items),
+    }));
+
+    return res.status(200).json({ success: true, data: ordersWithTotals });
   }
   catch (error) {
     console.error(error);
@@ -178,7 +198,10 @@ export async function getOrderById(req: Request, res: Response) {
 
     return res.status(200).json({
       success: true,
-      data: order
+      data: {
+        ...order,
+        totalAmount: calculateOrderTotal(order.items),
+      }
     });
 
   }
@@ -427,7 +450,10 @@ export async function acceptOrder(req: Request, res: Response) {
 
     return res.status(200).json({
       success: true,
-      data: order
+      data: {
+        ...order,
+        totalAmount: calculateOrderTotal(order.items),
+      }
     });
 
   }
@@ -472,7 +498,10 @@ export async function declineOrder(req: Request, res: Response) {
 
     return res.status(200).json({
       success: true,
-      data: order
+      data: {
+        ...order,
+        totalAmount: calculateOrderTotal(order.items),
+      }
     });
 
   }

@@ -155,6 +155,7 @@ export async function respondToOrder(publicToken: string, decision: "ACCEPT" | "
     return tx.order.update({
       where: { publicToken },
       data: { status: newStatus },
+      include: { items: true },      
     });
   });
 }

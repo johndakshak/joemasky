@@ -4,8 +4,8 @@ import { requireAdmin } from "../middleware/requireAdmin";
 
 const router = Router();
 
-router.post("/create/order", orderController.create);
-router.get("/order/:publicToken", orderController.getByPublicToken);
+router.post("/create/order", orderController.createOrder);
+router.get("/order/:publicToken", orderController.getOrderByPublicToken);
 router.get("/admin/Orders", requireAdmin, orderController.getAllOrders);
 router.get("/admin/order/:id", requireAdmin, orderController.getOrderById);
 router.patch("/admin/orderStatus/:id", requireAdmin, orderController.updateOrderStatus);
