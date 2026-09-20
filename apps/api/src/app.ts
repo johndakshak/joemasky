@@ -6,6 +6,7 @@ import superAdminRoutes from "./routes/superAdmin.routes";
 import authRoutes from "./routes/auth.routes";
 import orderRoutes from "./routes/order.routes";
 import shopContactRoutes from "./routes/shopContact.routes";
+import orderContactRoutes from "./routes/orderContact.routes";
 import cors from "cors";
 import helmet from "helmet";
 import { generalLimiter } from "./middleware/rateLimiters";
@@ -31,6 +32,7 @@ app.use("/", superAdminRoutes);
 app.use("/", authRoutes);
 app.use("/", orderRoutes);
 app.use("/", shopContactRoutes)
+app.use("/", orderContactRoutes);
 
 // Catch-all for unmatched routes.
 app.use((req, res) => {
