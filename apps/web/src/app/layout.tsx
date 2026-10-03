@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Bebas_Neue, Barlow } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/providers/query-provider";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 
 const bebasNeue = Bebas_Neue({
   weight: "400",
@@ -24,7 +26,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html className={`${bebasNeue.variable} ${barlow.variable} h-full antialiased`} lang="en">
       <body className="min-h-full flex flex-col font-barlow">
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <Header />
+          {children}
+          <Footer />
+        </QueryProvider>
       </body>
     </html>
   );

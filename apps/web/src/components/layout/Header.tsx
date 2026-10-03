@@ -10,11 +10,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { PageContainer } from "./page-container";
+import { PageContainer } from "./Page-Container";
+import { Logo } from "./Logo";
 
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/shop", label: "Shop" },
+  { href: "/collections", label: "Collections" },
 ];
 
 export function Header() {
@@ -22,8 +24,8 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-cream/90 backdrop-blur-xl border-b border-charcoal/[.06]">
       <PageContainer>
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="font-bebas text-2xl tracking-wider text-charcoal">
-            JeoMasky
+          <Link href="/" className="flex items-center h-11">
+            <Logo className="h-11 w-auto" />
           </Link>
 
           <nav className="hidden md:flex gap-10">
@@ -48,11 +50,11 @@ export function Header() {
             </Button>
 
             <Sheet>
-                <SheetTrigger
+              <SheetTrigger
                 render={<Button variant="ghost" size="icon" className="md:hidden text-charcoal" />}
-                >
-                    <Menu className="h-5 w-5" />
-                </SheetTrigger>
+              >
+                <Menu className="h-5 w-5" />
+              </SheetTrigger>
               <SheetContent side="right" className="bg-charcoal border-none">
                 <SheetHeader>
                   <SheetTitle className="font-bebas text-2xl text-cream tracking-wider">
