@@ -1,7 +1,9 @@
+import { ProductGrid } from "@/components/shop/ProductGrid";
+
 export default function Home() {
   return (
-    <main className="flex flex-1 items-center justify-center">
-      <p>Joe Masky — Caps &amp; Bags</p>
+    <main className="p-6 md:p-14">
+      <ProductGrid />
     </main>
   );
 }
