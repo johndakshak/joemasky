@@ -73,17 +73,21 @@ export async function createProduct(req: Request, res: Response) {
 
     const { name, description, price, categoryId, isAvailable, sizes, colors } = req.body;
 
+    const normalizedSizes = typeof sizes === "string" ? [sizes] : sizes;
+
+    const normalizedColors = typeof colors === "string" ? [colors] : colors;    
+
     const nameError = validateName(name);
     if (nameError) {
       return res.status(400).json({ success: false, message: nameError });
     }  
 
-    const sizesError = validateStringArray(sizes, "sizes");
+    const sizesError = validateStringArray(normalizedSizes, "sizes");
     if (sizesError) {
       return res.status(400).json({ success: false, message: sizesError });
     }
 
-    const colorsError = validateStringArray(colors, "colors");
+    const colorsError = validateStringArray(normalizedColors, "colors");
     if (colorsError) {
       return res.status(400).json({ success: false, message: colorsError });
     }    
@@ -128,8 +132,8 @@ export async function createProduct(req: Request, res: Response) {
       categoryId: categoryIdNum,   
       isAvailable,
       imageUrl,
-      sizes,
-      colors,    
+      sizes: normalizedSizes,
+      colors: normalizedColors,
     };
 
     const product = await productService.createProduct(productData);
