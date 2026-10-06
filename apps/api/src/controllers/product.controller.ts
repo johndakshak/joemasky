@@ -4,7 +4,7 @@ import * as categoryService from "../services/category.service"
 import { CreateProductInput, UpdateProductInput } from "../types/product.types";
 import { Prisma } from "../generated/prisma/client";
 import { uploadImageBuffer } from "../lib/cloudinary";
-import { validateName, validatePrice } from "../utils/validation";
+import { validateName, validatePrice, validateStringArray } from "../utils/validation";
 
 // GET ALL PRODUCTS
 export async function getAllProducts(req: Request, res: Response) {
@@ -71,12 +71,26 @@ export async function createProduct(req: Request, res: Response) {
 
   try {
 
-    const { name, description, price, categoryId, isAvailable } = req.body;
+    const { name, description, price, categoryId, isAvailable, sizes, colors } = req.body;
+
+    const normalizedSizes = typeof sizes === "string" ? [sizes] : sizes;
+
+    const normalizedColors = typeof colors === "string" ? [colors] : colors;    
 
     const nameError = validateName(name);
     if (nameError) {
       return res.status(400).json({ success: false, message: nameError });
     }  
+
+    const sizesError = validateStringArray(normalizedSizes, "sizes");
+    if (sizesError) {
+      return res.status(400).json({ success: false, message: sizesError });
+    }
+
+    const colorsError = validateStringArray(normalizedColors, "colors");
+    if (colorsError) {
+      return res.status(400).json({ success: false, message: colorsError });
+    }    
 
     const priceError = validatePrice(price);
     if (priceError) {
@@ -118,6 +132,8 @@ export async function createProduct(req: Request, res: Response) {
       categoryId: categoryIdNum,   
       isAvailable,
       imageUrl,
+      sizes: normalizedSizes,
+      colors: normalizedColors,
     };
 
     const product = await productService.createProduct(productData);
@@ -158,7 +174,29 @@ export async function updateProduct(req: Request, res: Response) {
       });
     }    
 
-    const { name, description, price, categoryId, isAvailable } = req.body;
+    const { name, description, price, categoryId, isAvailable, sizes, colors } = req.body;
+
+    const normalizedSizes = typeof sizes === "string" ? [sizes] : sizes;
+
+    const normalizedColors = typeof colors === "string" ? [colors] : colors;   
+    
+    const sizesError = validateStringArray(normalizedSizes, "sizes");
+
+    if (sizesError) {
+      return res.status(400).json({
+        success: false,
+        message: sizesError
+      });
+    }
+
+    const colorsError = validateStringArray(normalizedColors, "colors");
+
+    if (colorsError) {
+      return res.status(400).json({
+        success: false,
+        message: colorsError
+      });
+    }    
 
     if (name !== undefined) {
       const nameError = validateName(name);
@@ -202,6 +240,8 @@ export async function updateProduct(req: Request, res: Response) {
       price,
       categoryId: categoryIdNum,
       isAvailable,
+      sizes: normalizedSizes,
+      colors: normalizedColors,
     };
 
     if (req.file) {

@@ -52,6 +52,8 @@ model Product {
   description String?
   price       Decimal  @db.Decimal(10, 2)
   imageUrl    String?
+  sizes  String[]
+  colors String[]
   isAvailable Boolean  @default(true)
   categoryId  Int
   orderItems  OrderItem[]

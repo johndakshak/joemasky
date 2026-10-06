@@ -4,8 +4,9 @@ export interface CreateProductInput {
   price: number;
   categoryId: number;
   isAvailable?: boolean;
-  imageUrl: string
+  imageUrl: string;
+  sizes?: string[];
+  colors?: string[];
 }
-
 export type UpdateProductInput = Partial<CreateProductInput>;
 
