@@ -80,3 +80,13 @@ export function validatePhone(value: unknown): string | null {
 
   return null;
 }
+
+// VALIDATE FIELDS FOR ARRAY OF SIZES AND COLORS
+export function validateStringArray(value: unknown, fieldName: string): string | null {
+  if (value === undefined) return null; 
+  if (!Array.isArray(value)) return `${fieldName} must be an array`;
+  if (!value.every((item) => typeof item === "string")) {
+    return `${fieldName} must be an array of strings`;
+  }
+  return null;
+}
