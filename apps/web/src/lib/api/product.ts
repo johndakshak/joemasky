@@ -8,5 +8,5 @@ export function getProducts() {
 
 // GET PRODUCT BY ID
 export function getProductById(id: number) {
-  return apiClient<Product>(`/products/${id}`);
+  return apiClient<Product>(`/product/${id}`);
 }

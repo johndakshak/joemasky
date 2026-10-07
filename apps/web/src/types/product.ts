@@ -7,6 +7,8 @@ export interface Product {
   price: string;
   imageUrl: string;
   isAvailable: boolean;
+  sizes: string[];
+  colors: string[];  
   categoryId: number;
   category: Category;
   createdAt: string;
