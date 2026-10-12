@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { useCartStore } from "@/stores/cart-store";
 import { useProducts } from "@/hooks/useProducts";
 import { PageContainer } from "@/components/layout/Page-Container";
@@ -17,6 +18,28 @@ export default function CartPage() {
   const decreaseQuantity = useCartStore((state) => state.decreaseQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
   const { data: products, isLoading, isError } = useProducts();
+
+  // Tracks which cart items are currently playing their exit animation
+  const [removingKeys, setRemovingKeys] = useState<Set<string>>(new Set());
+
+  // Called when the Remove button is clicked.
+  // Plays the exit animation first, then removes the item from the store after 450ms.
+  function handleRemove(productId: number, selectedSize: string | null, selectedColor: string | null) {
+    const key = `${productId}-${selectedSize}-${selectedColor}`;
+
+    // Add key to the removing set — this triggers the exit animation classes
+    setRemovingKeys((prev) => new Set(prev).add(key));
+
+    // Wait for the animation to finish before removing from Zustand
+    setTimeout(() => {
+      removeItem(productId, selectedSize, selectedColor);
+      setRemovingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }, 450);
+  }
 
     if (isLoading) {
     return (
@@ -39,7 +62,9 @@ export default function CartPage() {
   // match each cart item to its product, skip products that no longer exist
   const lines = items.flatMap((item) => {
     const product = products.find((p) => p.id === item.productId);
-    return product ? [{ product, quantity: item.quantity }] : [];
+    return product
+      ? [{ product, quantity: item.quantity, selectedSize: item.selectedSize, selectedColor: item.selectedColor }]
+      : [];
   });
 
   const subtotal = lines.reduce(
@@ -102,8 +127,15 @@ export default function CartPage() {
               {/* CART ITEMS */}
               <div>
                 <div className="divide-y divide-charcoal/[.07]">
-                  {lines.map(({ product, quantity }) => (
-                    <div key={product.id} className="flex gap-5 md:gap-8 py-7">
+                  {lines.map(({ product, quantity, selectedSize, selectedColor }) => {
+                    const itemKey = `${product.id}-${selectedSize}-${selectedColor}`;
+                    const isRemoving = removingKeys.has(itemKey);
+
+                    return (
+                    <div
+                      key={itemKey}
+                      className={`flex gap-5 md:gap-8 py-7 ${isRemoving ? "animate-out fade-out slide-out-to-right fill-mode-forwards animation-duration-450" : ""}`}
+                    >
                       <div className="relative w-24 h-32 md:w-32 md:h-40 shrink-0 overflow-hidden bg-archive">
                         {product.imageUrl && (
                           <Image
@@ -121,9 +153,17 @@ export default function CartPage() {
                           <p className="text-[0.6rem] tracking-[0.22em] uppercase text-warmgray mb-1">
                             {product.category.name}
                           </p>
-                          <h3 className="text-[0.95rem] tracking-[0.04em] font-normal mb-3">
+                          <h3 className="text-[0.95rem] tracking-[0.04em] font-normal mb-1">
                             {product.name}
                           </h3>
+                          {/* Show selected size and color if present */}
+                          {(selectedSize || selectedColor) && (
+                            <p className="text-[0.72rem] text-warmgray mb-2">
+                              {selectedSize && <span>Size: {selectedSize}</span>}
+                              {selectedSize && selectedColor && <span> · </span>}
+                              {selectedColor && <span>Color: {selectedColor}</span>}
+                            </p>
+                          )}
                           <p className="text-[0.82rem] font-medium text-charcoal">
                             {formatNaira(Number(product.price))}
                           </p>
@@ -132,9 +172,9 @@ export default function CartPage() {
                         <div className="flex items-center justify-between mt-4">
                           <div className="flex items-center border border-charcoal/20">
                             <button
-                              onClick={() => decreaseQuantity(product.id)}
+                              onClick={() => decreaseQuantity(product.id, selectedSize, selectedColor)}
                               disabled={quantity === 1}
-                              className="w-8 h-8 flex items-center justify-center text-charcoal text-sm border-r border-charcoal/20 transition-colors duration-200 hover:bg-charcoal hover:text-cream disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-charcoal"
+                              className="w-8 h-8 flex items-center justify-center text-charcoal text-sm border-r border-charcoal/20 transition-colors duration-200 hover:bg-charcoal hover:text-cream disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-charcoal cursor-pointer disabled:cursor-not-allowed"
                             >
                               −
                             </button>
@@ -142,23 +182,25 @@ export default function CartPage() {
                               {quantity}
                             </span>
                             <button
-                              onClick={() => increaseQuantity(product.id)}
-                              className="w-8 h-8 flex items-center justify-center text-charcoal text-sm border-l border-charcoal/20 transition-colors duration-200 hover:bg-charcoal hover:text-cream"
+                              onClick={() => increaseQuantity(product.id, selectedSize, selectedColor)}
+                              className="w-8 h-8 flex items-center justify-center text-charcoal text-sm border-l border-charcoal/20 transition-colors duration-200 hover:bg-charcoal hover:text-cream cursor-pointer"
                             >
                               +
                             </button>
                           </div>
 
                           <button
-                            onClick={() => removeItem(product.id)}
-                            className="text-[0.65rem] tracking-[0.18em] uppercase text-warmgray transition-colors duration-200 hover:text-gold"
+                            onClick={() => handleRemove(product.id, selectedSize, selectedColor)}
+                            disabled={isRemoving}
+                            className="text-[0.65rem] tracking-[0.18em] uppercase text-warmgray transition-colors duration-200 hover:text-gold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Remove
                           </button>
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="pt-8">

@@ -85,6 +85,8 @@ model OrderItem {
   unitPrice    Decimal          @db.Decimal(10, 2)
   quantity     Int
   availability ItemAvailability @default(AVAILABLE)
+  selectedSize  String?
+  selectedColor String?
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 }

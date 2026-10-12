@@ -37,6 +37,8 @@ export async function createOrder(input: CreateOrderInput, products: Product[]) 
           productName: product.name,
           unitPrice: product.price,
           quantity: item.quantity,
+          selectedSize: item.selectedSize ?? null,
+          selectedColor: item.selectedColor ?? null,
         },
       });
     }
