@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useCartStore } from "@/stores/cart-store";
+import { toast } from "sonner";
 
 type OptionGroupProps = {
   label: string;
@@ -34,12 +36,14 @@ function OptionGroup({ label, options, selected, onSelect }: OptionGroupProps) {
 }
 
 type AddToCartProps = {
+  productId: number;
   isAvailable: boolean;
   sizes: string[];
   colors: string[];
 };
 
-export function AddToCart({ isAvailable, sizes, colors }: AddToCartProps) {
+export function AddToCart({ productId, isAvailable, sizes, colors }: AddToCartProps) {
+  const addItem = useCartStore((state) => state.addItem);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -82,9 +86,16 @@ export function AddToCart({ isAvailable, sizes, colors }: AddToCartProps) {
         </div>
 
         <button
+          type="button"
+          onClick={() => {
+            addItem(productId, quantity);
+            toast.success("Added to cart", {
+              className: "!bg-green-600 !text-white !border-green-600",
+            });
+          }}        
           disabled={!isAvailable || needsSize || needsColor}
-          className="bg-gold text-charcoal px-10 py-4 text-xs tracking-[0.18em] uppercase disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+          className="bg-gold text-charcoal px-10 py-4 text-xs tracking-[0.18em] uppercase transition-colors enabled:cursor-pointer enabled:hover:bg-goldlt disabled:opacity-50 disabled:cursor-not-allowed"
+          >
           {buttonLabel}
         </button>
       </div>

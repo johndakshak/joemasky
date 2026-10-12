@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/sheet";
 import { PageContainer } from "./Page-Container";
 import { Logo } from "./Logo";
+import { useEffect, useState } from "react";
+import { useCartStore } from "@/stores/cart-store";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -20,6 +22,14 @@ const navLinks = [
 ];
 
 export function Header() {
+
+  const [mounted, setMounted] = useState(false);
+  const cartCount = useCartStore((state) => state.items.length);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);  
+
   return (
     <header className="sticky top-0 z-50 bg-cream/90 backdrop-blur-xl border-b border-charcoal/[.06]">
       <PageContainer>
@@ -45,8 +55,21 @@ export function Header() {
             <Button variant="ghost" size="icon" className="text-charcoal hover:text-gold">
               <Search className="h-[17px] w-[17px]" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-charcoal hover:text-gold">
+
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Cart"
+              nativeButton={false}
+              render={<Link href="/cart" />}
+              className="relative text-charcoal hover:text-gold"
+            >
               <ShoppingCart className="h-[17px] w-[17px]" />
+              {mounted && cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-gold text-charcoal text-[0.5rem] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
             </Button>
 
             <Sheet>
