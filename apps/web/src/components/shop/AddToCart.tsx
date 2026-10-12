@@ -88,7 +88,7 @@ export function AddToCart({ productId, isAvailable, sizes, colors }: AddToCartPr
         <button
           type="button"
           onClick={() => {
-            addItem(productId, quantity);
+            addItem(productId, quantity, selectedSize, selectedColor);
             toast.success("Added to cart", {
               className: "!bg-green-600 !text-white !border-green-600",
             });

@@ -5,6 +5,8 @@ export type ItemAvailability = "AVAILABLE" | "UNAVAILABLE";
 export interface OrderItemInput {
   productId: number;
   quantity: number;
+  selectedSize?: string | null;
+  selectedColor?: string | null;
 }
 
 export interface CreateOrderInput {
@@ -23,6 +25,8 @@ export interface OrderItem {
   unitPrice: string;
   quantity: number;
   availability: ItemAvailability;
+  selectedSize: string | null;
+  selectedColor: string | null;
   createdAt: string;
   updatedAt: string;
 }

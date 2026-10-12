@@ -4,15 +4,26 @@ import { persist } from "zustand/middleware";
 interface CartItem {
   productId: number;
   quantity: number;
+  selectedSize: string | null;
+  selectedColor: string | null;
 }
 
 interface CartState {
   items: CartItem[];
-  addItem: (productId: number, quantity?: number) => void;
-  removeItem: (productId: number) => void;
-  increaseQuantity: (productId: number) => void;
-  decreaseQuantity: (productId: number) => void;
+  addItem: (productId: number, quantity: number, selectedSize: string | null, selectedColor: string | null) => void;
+  removeItem: (productId: number, selectedSize: string | null, selectedColor: string | null) => void;
+  increaseQuantity: (productId: number, selectedSize: string | null, selectedColor: string | null) => void;
+  decreaseQuantity: (productId: number, selectedSize: string | null, selectedColor: string | null) => void;
   clearCart: () => void;
+}
+
+// Check if two cart items refer to the same product variant (same id + same size + same color)
+function isSameVariant(item: CartItem, productId: number, selectedSize: string | null, selectedColor: string | null) {
+  return (
+    item.productId === productId &&
+    item.selectedSize === selectedSize &&
+    item.selectedColor === selectedColor
+  );
 }
 
 export const useCartStore = create<CartState>()(
@@ -20,40 +31,50 @@ export const useCartStore = create<CartState>()(
     (set) => ({
       items: [],
 
-      addItem: (productId, quantity = 1) =>
+      addItem: (productId, quantity, selectedSize, selectedColor) =>
         set((state) => {
-          const existing = state.items.find((item) => item.productId === productId);
+          const existing = state.items.find((item) =>
+            isSameVariant(item, productId, selectedSize, selectedColor)
+          );
+
           if (existing) {
+            // Same variant already in cart — just increase its quantity
             return {
               items: state.items.map((item) =>
-                item.productId === productId
+                isSameVariant(item, productId, selectedSize, selectedColor)
                   ? { ...item, quantity: item.quantity + quantity }
                   : item
               ),
             };
           }
-          return { items: [...state.items, { productId, quantity }] };
+
+          // New variant — add as a separate cart entry
+          return {
+            items: [...state.items, { productId, quantity, selectedSize, selectedColor }],
+          };
         }),
 
-      removeItem: (productId) =>
+      removeItem: (productId, selectedSize, selectedColor) =>
         set((state) => ({
-          items: state.items.filter((item) => item.productId !== productId),
+          items: state.items.filter(
+            (item) => !isSameVariant(item, productId, selectedSize, selectedColor)
+          ),
         })),
 
-      increaseQuantity: (productId) =>
+      increaseQuantity: (productId, selectedSize, selectedColor) =>
         set((state) => ({
           items: state.items.map((item) =>
-            item.productId === productId
+            isSameVariant(item, productId, selectedSize, selectedColor)
               ? { ...item, quantity: item.quantity + 1 }
               : item
           ),
         })),
 
-      decreaseQuantity: (productId) =>
+      decreaseQuantity: (productId, selectedSize, selectedColor) =>
         set((state) => ({
           items: state.items
             .map((item) =>
-              item.productId === productId
+              isSameVariant(item, productId, selectedSize, selectedColor)
                 ? { ...item, quantity: item.quantity - 1 }
                 : item
             )

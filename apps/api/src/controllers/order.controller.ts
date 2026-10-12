@@ -63,7 +63,7 @@ export async function createOrder(req: Request, res: Response) {
             message: "Each item must have a valid productId and a positive quantity"
             });
         }
-    }    
+    }
 
     const productIds = items.map((item: any) => item.productId);
 
@@ -77,6 +77,43 @@ export async function createOrder(req: Request, res: Response) {
         success: false,
         message: `Some products do not exist: ${missingIds.join(", ")}`
       });
+    }
+
+    // Validate selectedSize and selectedColor for each item against the product's available options
+    for (const item of items) {
+      const product = products.find(p => p.id === item.productId)!;
+
+      // If the product has sizes, the customer must pick one
+      if (product.sizes.length > 0) {
+        if (!item.selectedSize || typeof item.selectedSize !== "string") {
+          return res.status(400).json({
+            success: false,
+            message: `A size selection is required for product: ${product.name}`
+          });
+        }
+        if (!product.sizes.includes(item.selectedSize)) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid size "${item.selectedSize}" for product: ${product.name}`
+          });
+        }
+      }
+
+      // If the product has colors, the customer must pick one
+      if (product.colors.length > 0) {
+        if (!item.selectedColor || typeof item.selectedColor !== "string") {
+          return res.status(400).json({
+            success: false,
+            message: `A color selection is required for product: ${product.name}`
+          });
+        }
+        if (!product.colors.includes(item.selectedColor)) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid color "${item.selectedColor}" for product: ${product.name}`
+          });
+        }
+      }
     }
 
     const orderInput: CreateOrderInput = {
