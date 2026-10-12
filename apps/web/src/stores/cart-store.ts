@@ -1,0 +1,67 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+
+interface CartItem {
+  productId: number;
+  quantity: number;
+}
+
+interface CartState {
+  items: CartItem[];
+  addItem: (productId: number, quantity?: number) => void;
+  removeItem: (productId: number) => void;
+  increaseQuantity: (productId: number) => void;
+  decreaseQuantity: (productId: number) => void;
+  clearCart: () => void;
+}
+
+export const useCartStore = create<CartState>()(
+  persist(
+    (set) => ({
+      items: [],
+
+      addItem: (productId, quantity = 1) =>
+        set((state) => {
+          const existing = state.items.find((item) => item.productId === productId);
+          if (existing) {
+            return {
+              items: state.items.map((item) =>
+                item.productId === productId
+                  ? { ...item, quantity: item.quantity + quantity }
+                  : item
+              ),
+            };
+          }
+          return { items: [...state.items, { productId, quantity }] };
+        }),
+
+      removeItem: (productId) =>
+        set((state) => ({
+          items: state.items.filter((item) => item.productId !== productId),
+        })),
+
+      increaseQuantity: (productId) =>
+        set((state) => ({
+          items: state.items.map((item) =>
+            item.productId === productId
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          ),
+        })),
+
+      decreaseQuantity: (productId) =>
+        set((state) => ({
+          items: state.items
+            .map((item) =>
+              item.productId === productId
+                ? { ...item, quantity: item.quantity - 1 }
+                : item
+            )
+            .filter((item) => item.quantity > 0),
+        })),
+
+      clearCart: () => set({ items: [] }),
+    }),
+    { name: "jeomasky-cart" }
+  )
+);
