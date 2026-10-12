@@ -54,6 +54,7 @@ export default async function ProductDetailPage({
           )}
 
           <AddToCart
+            productId={product.id}
             isAvailable={product.isAvailable}
             sizes={product.sizes}
             colors={product.colors}

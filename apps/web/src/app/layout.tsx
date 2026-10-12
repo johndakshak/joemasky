@@ -4,6 +4,7 @@ import "./globals.css";
 import { QueryProvider } from "@/providers/query-provider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Toaster } from "@/components/ui/sonner";
 
 const bebasNeue = Bebas_Neue({
   weight: "400",
@@ -28,8 +29,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col font-barlow">
         <QueryProvider>
           <Header />
-          {children}
+            {children}
           <Footer />
+          <Toaster />          
         </QueryProvider>
       </body>
     </html>
