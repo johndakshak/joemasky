@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { Order, OrderItem, OrderStatus } from "@/types/order";
+import type { OrderContactLinks } from "@/types/contact";
+import { getOrderContactLinks } from "@/lib/api/contact";
 import { OrderActions } from "./OrderActions";
 import { PageContainer } from "@/components/layout/Page-Container";
 
@@ -98,6 +100,33 @@ interface OrderViewProps {
 export function OrderView({ initialOrder }: OrderViewProps) {
   // Accept/Decline actions return the updated Order — replace the initial data.
   const [order, setOrder] = useState<Order>(initialOrder);
+
+  // Contact links are fetched separately so a failure does not affect
+  // the order display or Accept/Decline actions.
+  // null  = still loading
+  // false = fetch failed
+  // OrderContactLinks = successfully loaded
+  const [contactLinks, setContactLinks] = useState<OrderContactLinks | null | false>(null);
+
+  useEffect(() => {
+    // Track whether this effect is still current so we don't apply a stale
+    // result if the component re-renders with a different token.
+    let cancelled = false;
+
+    setContactLinks(null); // reset to loading on each token change
+
+    getOrderContactLinks(order.publicToken)
+      .then((links) => {
+        if (!cancelled) setContactLinks(links);
+      })
+      .catch(() => {
+        if (!cancelled) setContactLinks(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [order.publicToken]);
 
   const { label: statusLabel, className: statusClass } = statusMeta(order.status);
   const hasUnavailableItems = order.items.some((i) => i.availability === "UNAVAILABLE");
@@ -351,21 +380,31 @@ export function OrderView({ initialOrder }: OrderViewProps) {
             {/* ── Contact note — always shown ── */}
             <p className="text-center text-[0.75rem] text-warmgray leading-relaxed">
               Questions about your order? Contact the shop via{" "}
-              <a
-                href="https://wa.me/2340000000000"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gold hover:underline"
-              >
-                WhatsApp
-              </a>{" "}
-              or{" "}
-              <a
-                href="tel:+2340000000000"
-                className="text-gold hover:underline"
-              >
-                phone
-              </a>
+              {contactLinks === null ? (
+                // Loading — keep the sentence intact with muted placeholder text
+                <span className="text-warmgray/40">WhatsApp or phone</span>
+              ) : contactLinks === false ? (
+                // Fetch failed — omit links so we never show dead or fake URLs
+                <span>WhatsApp or phone</span>
+              ) : (
+                <>
+                  <a
+                    href={contactLinks.whatsapp}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gold hover:underline"
+                  >
+                    WhatsApp
+                  </a>
+                  {" "}or{" "}
+                  <a
+                    href={contactLinks.call}
+                    className="text-gold hover:underline"
+                  >
+                    phone
+                  </a>
+                </>
+              )}
               .
             </p>
 
