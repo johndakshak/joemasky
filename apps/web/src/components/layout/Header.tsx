@@ -78,7 +78,7 @@ export function Header() {
               >
                 <Menu className="h-5 w-5" />
               </SheetTrigger>
-              <SheetContent side="right" className="bg-charcoal border-none">
+              <SheetContent side="right" className="bg-charcoal border-none [&_[data-slot=sheet-close]]:text-cream [&_[data-slot=sheet-close]]:hover:text-cream/70">
                 <SheetHeader>
                   <SheetTitle className="font-bebas text-2xl text-cream tracking-wider">
                     Menu
