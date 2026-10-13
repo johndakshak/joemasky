@@ -277,10 +277,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* 2. Button row: Track Order (outlined) + Continue Shopping (gold).
-                     Track Order is a placeholder — the /orders/[token] route does
-                     not exist yet (Phase 7). The button is present and the token
-                     is available; it will be wired to the real route in Phase 7. */}
+              {/* Button row: Continue Shopping + Track Order */}
               <div className="flex flex-col gap-3">
                 <Link
                   href="/"
@@ -289,21 +286,13 @@ export default function CheckoutPage() {
                   Continue Shopping
                 </Link>
 
-                {/* Track Order — href intentionally points to # until the
-                    Phase 7 order-tracking page exists at /orders/[token].
-                    Replace href with `/orders/${confirmedOrder.publicToken}`
-                    once that route is created. */}
                 <Link
-                  href="#"
-                  aria-disabled="true"
-                  className="block w-full rounded-[10px] border border-charcoal/20 text-charcoal py-[1.05rem] px-6 text-[0.78rem] font-semibold tracking-[0.2em] uppercase text-center transition-all duration-200 hover:border-gold hover:text-gold opacity-50 cursor-not-allowed pointer-events-none"
+                  href={`/orders/${confirmedOrder.publicToken}`}
+                  className="block w-full rounded-[10px] border border-charcoal/20 text-charcoal py-[1.05rem] px-6 text-[0.78rem] font-semibold tracking-[0.2em] uppercase text-center transition-all duration-200 hover:border-gold hover:text-gold"
                 >
                   Track Order
                 </Link>
 
-                <p className="text-[0.65rem] text-warmgray/70 tracking-[0.04em]">
-                  Order tracking will be available shortly.
-                </p>
               </div>
             </div>
           </div>
