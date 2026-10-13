@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bebas_Neue, Barlow } from "next/font/google";
+import { Bebas_Neue, Barlow, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/providers/query-provider";
 import { Header } from "@/components/layout/Header";
@@ -18,6 +18,13 @@ const barlow = Barlow({
   subsets: ["latin"],
 });
 
+const cormorant = Cormorant_Garamond({
+  weight: ["300", "400", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "Joe Masky — Caps & Bags",
   description: "Premium caps and bags for the Nigerian market.",
@@ -25,7 +32,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html className={`${bebasNeue.variable} ${barlow.variable} h-full antialiased`} lang="en">
+    <html className={`${bebasNeue.variable} ${barlow.variable} ${cormorant.variable} h-full antialiased`} lang="en">
       <body className="min-h-full flex flex-col font-barlow">
         <QueryProvider>
           <Header />
