@@ -17,21 +17,30 @@ import { useCartStore } from "@/stores/cart-store";
 
 const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/shop", label: "Shop" },
-  { href: "/collections", label: "Collections" },
+  { href: "/#shop", label: "Shop" },
+  { href: "/#collections", label: "Collections" },
+  { href: "/#about", label: "About" },
+  { href: "/#contact", label: "Contact" },
 ];
 
 export function Header() {
 
   const [mounted, setMounted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const cartCount = useCartStore((state) => state.items.length);
 
   useEffect(() => {
     setMounted(true);
+
+    function onScroll() {
+      setScrolled(window.scrollY > 60);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);  
 
   return (
-    <header className="sticky top-0 z-50 bg-cream/90 backdrop-blur-xl border-b border-charcoal/[.06]">
+    <header className={`sticky top-0 z-50 bg-cream/90 backdrop-blur-xl border-b border-charcoal/[.06] transition-all duration-300 ${scrolled ? "py-1" : ""}`}>
       <PageContainer>
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center h-11">
