@@ -12,7 +12,7 @@ export function requireSuperAdmin(req: Request, res: Response, next: NextFunctio
   if (req.admin.role !== "SUPER_ADMIN") {
     return res.status(403).json({
       success: false,
-      message: "Forbidden: not enough priviledges"
+      message: "Forbidden: not enough privileges"
     });
   }
 
