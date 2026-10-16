@@ -89,9 +89,7 @@ export function AddToCart({ productId, isAvailable, sizes, colors }: AddToCartPr
           type="button"
           onClick={() => {
             addItem(productId, quantity, selectedSize, selectedColor);
-            toast.success("Added to cart", {
-              className: "!bg-green-600 !text-white !border-green-600",
-            });
+            toast.success("Added to cart");
           }}        
           disabled={!isAvailable || needsSize || needsColor}
           className="bg-gold text-charcoal px-10 py-4 text-xs tracking-[0.18em] uppercase transition-colors enabled:cursor-pointer enabled:hover:bg-goldlt disabled:opacity-50 disabled:cursor-not-allowed"
