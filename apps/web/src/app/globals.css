@@ -351,4 +351,67 @@
   .admin-form-inner {
     animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
+
+  /* ══════════════════════════════════════════════════════════════
+     Admin Dashboard Layout
+     ══════════════════════════════════════════════════════════════ */
+
+  /* Fixed sidebar — desktop only (shown via md:flex in AdminShell) */
+  .admin-sidebar {
+    width: 16rem; /* w-64 */
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  /* Main content area — fills remaining width */
+  .admin-content {
+    min-height: 100vh;
+    background: var(--cream);
+  }
+
+  /* Gold gradient horizontal rule */
+  .admin-gold-line {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(200, 160, 48, 0.55),
+      rgba(154, 117, 32, 0.4),
+      rgba(200, 160, 48, 0.55),
+      transparent
+    );
+  }
+
+  /* Sidebar nav link */
+  .admin-nav-item {
+    border-left: 2px solid transparent;
+    color: rgba(255, 255, 255, 0.50);
+    transition: background 0.18s, border-color 0.18s, color 0.18s;
+    text-decoration: none;
+  }
+
+  .admin-nav-item:hover {
+    background: rgba(200, 160, 48, 0.08);
+    border-left-color: rgba(200, 160, 48, 0.4);
+    color: var(--gold);
+  }
+
+  .admin-nav-item[data-active="true"] {
+    background: rgba(200, 160, 48, 0.12);
+    border-left-color: var(--gold);
+    color: var(--gold);
+  }
+
+  /* Stat card */
+  .admin-stat-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .admin-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(200, 160, 48, 0.10);
+  }
 }
