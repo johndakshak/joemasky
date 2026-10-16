@@ -116,7 +116,7 @@ export default function CartPage() {
                 Looks like you haven&apos;t added anything yet.
               </p>
               <Link
-                href="/shop"
+                href="/#shop"
                 className="inline-flex items-center gap-2 text-[0.72rem] tracking-[0.22em] uppercase text-charcoal bg-gold px-10 py-4 hover:bg-goldlt transition-all duration-300 font-medium"
               >
                 Continue Shopping →
@@ -205,7 +205,7 @@ export default function CartPage() {
 
                 <div className="pt-8">
                   <Link
-                    href="/shop"
+                    href="/#shop"
                     className="inline-flex items-center gap-2 text-[0.7rem] tracking-[0.22em] uppercase text-charcoal hover:text-gold transition-colors duration-200"
                   >
                     ← Continue Shopping
@@ -288,7 +288,7 @@ export default function CartPage() {
                 You May Also Like
               </h2>
               <Link
-                href="/shop"
+                href="/#shop"
                 className="text-[0.65rem] tracking-[0.22em] uppercase text-gold hover:opacity-70 transition-opacity"
               >
                 View All →

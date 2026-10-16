@@ -7,7 +7,7 @@ import { getShopContact } from "@/lib/api/contact";
 import type { ShopContact } from "@/types/contact";
 
 const shopLinks = [
-  { href: "/shop", label: "All Products" },
+  { href: "/#shop", label: "All Products" },
   { href: "#", label: "Footwear" },
   { href: "#", label: "Caps" },
   { href: "#", label: "Bags" },

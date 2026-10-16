@@ -53,10 +53,19 @@
   --color-gold: var(--gold);
   --color-goldlt: var(--goldlt);
   --color-archive: var(--archive);
+  --color-hero: var(--hero);
 
   --font-bebas: var(--font-bebas);
   --font-barlow: var(--font-barlow);
   --font-cormorant: var(--font-cormorant);
+
+  /* Marquee animation */
+  --animate-marquee: marquee 20s linear infinite;
+
+  @keyframes marquee {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
 }
 
 :root {
@@ -99,6 +108,7 @@
   --gold: #c8a030;
   --goldlt: #e8c060;
   --archive: #efebe3;
+  --hero: #e8e3d8;
 }
 
 .dark {
@@ -144,5 +154,41 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  /*
+   * Scroll-reveal progressive enhancement.
+   * Elements with .reveal start visible (opacity:1, no transform) so content
+   * is readable if JS or IntersectionObserver is unavailable.
+   * The JS hook in useScrollReveal adds .reveal-ready to <html> only after
+   * confirming IntersectionObserver is available, which switches them to the
+   * hidden initial state. Visible state is restored per-element when observed.
+   */
+  .reveal-ready .reveal {
+    opacity: 0;
+    transform: translateY(36px);
+    transition:
+      opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal-ready .reveal-d1 { transition-delay: 0.08s; }
+  .reveal-ready .reveal-d2 { transition-delay: 0.16s; }
+  .reveal-ready .reveal-d3 { transition-delay: 0.24s; }
+  .reveal-ready .reveal-d4 { transition-delay: 0.32s; }
+  .reveal-ready .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Spring easing shorthand used on product card image zoom */
+  .ease-spring {
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Marquee */
+  .animate-marquee {
+    animation: var(--animate-marquee);
   }
 }
