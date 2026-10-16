@@ -128,7 +128,7 @@ export function AdminLoginForm() {
       // Show the success toast, then navigate after a short pause so the
       // user sees confirmation before the page changes.
       toast.success("Login successful! Welcome back.");
-      setTimeout(() => router.push("/admin/dashboard"), 1000);
+      setTimeout(() => router.push("/admin"), 1000);
     } catch (err) {
       if (err instanceof ApiError) {
         switch (err.status) {
@@ -174,7 +174,7 @@ export function AdminLoginForm() {
       {/* Gold accent bar */}
       <div className="admin-accent-bar" aria-hidden="true" />
 
-      <section className="min-h-screen grid grid-cols-1 lg:grid-cols-2 overflow-x-hidden">
+      <section className="min-h-screen grid grid-cols-1 lg:grid-cols-2 overflow-x-hidden overflow-y-auto">
 
         {/* ── LEFT: Brand panel ──────────────────────────────── */}
         <div
