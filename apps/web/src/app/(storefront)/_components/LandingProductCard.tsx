@@ -34,9 +34,7 @@ export function LandingProductCard({ product, badge, delayClass = "" }: LandingP
     e.preventDefault(); // prevent the Link from navigating
     if (!product.isAvailable) return;
     addItem(product.id, 1, null, null);
-    toast.success(`${product.name} added to cart`, {
-      className: "!bg-green-600 !text-white !border-green-600",
-    });
+    toast.success(`${product.name} added to cart`);
   }
 
   return (
