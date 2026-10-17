@@ -10,6 +10,7 @@ import orderContactRoutes from "./routes/orderContact.routes";
 import cors from "cors";
 import helmet from "helmet";
 import { generalLimiter } from "./middleware/rateLimiters";
+import multer from "multer";
 
 const app = express();
 
@@ -24,12 +25,6 @@ app.get("/health", (req, res) => {
 app.use(cors());
 app.use(helmet());
 app.use(generalLimiter);
-
-app.get("/health", (req, res) => {
-    res.status(200).json({
-        status: "ok",
-    });
-});
 
 app.use("/", productRoutes);
 app.use("/", categoryRoutes);
@@ -48,18 +43,53 @@ app.use((req, res) => {
 });
 
 // Error handler
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if ((err as any).type === "entity.parse.failed") {
-        return res.status(400).json({
-            success: false,
-            message: "Invalid JSON in request body"
-        });
+
+app.use(
+  (err: Error, req: express.Request, res: express.Response, next: express.NextFunction
+  ) => {
+    if (res.headersSent) {
+      return next(err);
     }
 
-    console.log(err);
-    res.status(500).json({
-        message: "something went wrong",
+    // Invalid JSON
+    if ((err as any).type === "entity.parse.failed") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid JSON in request body",
+      });
+    }
+
+    // Multer upload errors
+    if (err instanceof multer.MulterError) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(413).json({
+          success: false,
+          message: "Image must not exceed 10 MB",
+        });
+      }
+
+      return res.status(400).json({
+        success: false,
+        message: "Invalid file upload",
+      });
+    }
+
+    // Unsupported image type from the Multer fileFilter
+    if (err.message.startsWith("Unsupported file type")) {
+      return res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
+
+    // Unexpected errors
+    console.error(err);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
     });
-});
+  }
+);
+
 
 export default app;

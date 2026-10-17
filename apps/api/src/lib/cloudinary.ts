@@ -18,8 +18,19 @@ cloudinary.config({
 
 const storage = multer.memoryStorage();
 
+const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+
+const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
+  if (ALLOWED_MIME_TYPES.has(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error(`Unsupported file type "${file.mimetype}". Only JPEG, PNG, and WebP images are accepted.`));
+  }
+};
+
 export { cloudinary };
-export const upload = multer({ storage });
+export const upload = multer({ storage, fileFilter, limits: { fileSize: MAX_FILE_SIZE_BYTES } });
 
 // HELPER FUNCTION FOR IMAGE BUFFER
 export function uploadImageBuffer(buffer: Buffer, folder: string): Promise<string> {
