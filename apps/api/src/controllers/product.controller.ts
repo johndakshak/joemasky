@@ -174,11 +174,20 @@ export async function updateProduct(req: Request, res: Response) {
       });
     }    
 
-    const { name, description, price, categoryId, isAvailable, sizes, colors } = req.body;
+    const { name, description, price, categoryId, isAvailable, sizes, colors, clearSizes, clearColors } = req.body;
 
-    const normalizedSizes = typeof sizes === "string" ? [sizes] : sizes;
+    // If the client sent clearSizes="true", set sizes to an empty array so
+    // Prisma writes [] to the column. Otherwise fall back to the standard
+    // multipart normalization (string → single-element array, array → as-is,
+    // undefined → omit from update and leave the existing value unchanged).
+    const normalizedSizes: string[] | undefined =
+      clearSizes === "true" ? [] :
+      typeof sizes === "string" ? [sizes] : sizes;
 
-    const normalizedColors = typeof colors === "string" ? [colors] : colors;   
+    // Same logic for colors.
+    const normalizedColors: string[] | undefined =
+      clearColors === "true" ? [] :
+      typeof colors === "string" ? [colors] : colors;
     
     const sizesError = validateStringArray(normalizedSizes, "sizes");
 

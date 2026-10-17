@@ -4,23 +4,8 @@ import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Shared toast design — white background, green border and text.
-//
-// Applied via Sonner CSS custom properties so every toast type (success,
-// error, warning, info, loading, default) inherits the same appearance
-// without per-call overrides.
-//
-// Variables reference:
-//   --normal-*   → base / toast() calls
-//   --success-*  → toast.success()
-//   --error-*    → toast.error()
-//   --warning-*  → toast.warning()  (Sonner falls back to --normal-* if unset)
-//   --info-*     → toast.info()     (same fallback)
-// ─────────────────────────────────────────────────────────────────────────────
-const TOAST_BG     = "#ffffff"
-const TOAST_TEXT   = "#15803d"   // green-700
-const TOAST_BORDER = "#16a34a"   // green-600
+// richColors is required to activate Sonner v2's type-specific colour selectors
+// (success/error/warning/info). Without it every toast uses the --normal-* variables.
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme()
@@ -28,6 +13,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
+      richColors
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,
@@ -38,32 +24,12 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       style={
         {
-          // Base (toast() / toast.message())
-          "--normal-bg":     TOAST_BG,
-          "--normal-text":   TOAST_TEXT,
-          "--normal-border": TOAST_BORDER,
-
-          // toast.success()
-          "--success-bg":     TOAST_BG,
-          "--success-text":   TOAST_TEXT,
-          "--success-border": TOAST_BORDER,
-
-          // toast.error()
-          "--error-bg":     TOAST_BG,
-          "--error-text":   TOAST_TEXT,
-          "--error-border": TOAST_BORDER,
-
-          // Shape / radius — unchanged from original
+          "--normal-bg":     "#ffffff",
+          "--normal-text":   "#1c1a14",
+          "--normal-border": "#d4cfc6",
           "--border-radius": "var(--radius)",
         } as React.CSSProperties
       }
-      toastOptions={{
-        classNames: {
-          toast: "cn-toast",
-          // Colour the icon to match the text so it inherits the green
-          icon: "text-[#16a34a]",
-        },
-      }}
       {...props}
     />
   )
