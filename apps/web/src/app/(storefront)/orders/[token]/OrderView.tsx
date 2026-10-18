@@ -14,7 +14,6 @@ function formatNaira(amount: number) {
   return "₦" + amount.toLocaleString("en-NG");
 }
 
-// Human-readable label + colour for each status
 function statusMeta(status: OrderStatus): { label: string; className: string } {
   switch (status) {
     case "PENDING":
@@ -37,7 +36,12 @@ function statusMeta(status: OrderStatus): { label: string; className: string } {
 // ─── Item row ─────────────────────────────────────────────────────────────────
 
 function ItemRow({ item }: { item: OrderItem }) {
-  const lineTotal = Number(item.unitPrice) * item.quantity;
+  // For AVAILABLE items, show the effective quantity (partial fill if set).
+  const effectiveQty =
+    item.availability === "AVAILABLE"
+      ? (item.availableQuantity ?? item.quantity)
+      : item.quantity;
+  const lineTotal = Number(item.unitPrice) * effectiveQty;
   const unavailable = item.availability === "UNAVAILABLE";
 
   return (
@@ -74,7 +78,12 @@ function ItemRow({ item }: { item: OrderItem }) {
       {/* Row 3: quantity · unit price · line total */}
       <div className="flex items-baseline justify-between gap-4">
         <p className="text-[0.72rem] text-warmgray">
-          <span>Qty: {item.quantity}</span>
+          <span>Qty: {effectiveQty}</span>
+          {item.availableQuantity != null && !unavailable && (
+            <span className="ml-1 text-orange-600">
+              (of {item.quantity} ordered)
+            </span>
+          )}
           <span className="mx-1.5 text-charcoal/20">·</span>
           <span>{formatNaira(Number(item.unitPrice))} each</span>
         </p>
@@ -98,38 +107,28 @@ interface OrderViewProps {
 }
 
 export function OrderView({ initialOrder }: OrderViewProps) {
-  // Accept/Decline actions return the updated Order — replace the initial data.
   const [order, setOrder] = useState<Order>(initialOrder);
 
-  // Contact links are fetched separately so a failure does not affect
-  // the order display or Accept/Decline actions.
-  // null  = still loading
-  // false = fetch failed
-  // OrderContactLinks = successfully loaded
+  // Contact links are fetched separately; a failure does not affect order display.
+  // null = loading, false = failed, OrderContactLinks = loaded.
   const [contactLinks, setContactLinks] = useState<OrderContactLinks | null | false>(null);
 
   useEffect(() => {
-    // Track whether this effect is still current so we don't apply a stale
-    // result if the component re-renders with a different token.
     let cancelled = false;
-
-    setContactLinks(null); // reset to loading on each token change
+    setContactLinks(null);
 
     getOrderContactLinks(order.publicToken)
-      .then((links) => {
-        if (!cancelled) setContactLinks(links);
-      })
-      .catch(() => {
-        if (!cancelled) setContactLinks(false);
-      });
+      .then((links) => { if (!cancelled) setContactLinks(links); })
+      .catch(() => { if (!cancelled) setContactLinks(false); });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [order.publicToken]);
 
   const { label: statusLabel, className: statusClass } = statusMeta(order.status);
   const hasUnavailableItems = order.items.some((i) => i.availability === "UNAVAILABLE");
+  const hasPartialItems = order.items.some(
+    (i) => i.availability === "AVAILABLE" && i.availableQuantity != null
+  );
   const isPartiallyConfirmed = order.status === "PARTIALLY_CONFIRMED";
   const formattedDate = new Date(order.createdAt).toLocaleDateString("en-NG", {
     day: "numeric",
@@ -198,12 +197,16 @@ export function OrderView({ initialOrder }: OrderViewProps) {
                 </svg>
                 <div>
                   <p className="text-[0.82rem] font-medium text-orange-800 mb-0.5">
-                    Some items are unavailable
+                    {hasUnavailableItems && hasPartialItems
+                      ? "Some items are unavailable or can only be partially fulfilled"
+                      : hasUnavailableItems
+                      ? "Some items are unavailable"
+                      : "Some items can only be partially fulfilled"}
                   </p>
                   <p className="text-[0.78rem] text-orange-700 leading-relaxed">
-                    The shop has reviewed your order and one or more items cannot
-                    be fulfilled. Review the list below and choose whether to
-                    accept the available items or decline the order.
+                    The shop has reviewed your order and cannot fulfil it in full.
+                    Review the quantities and availability below, then choose whether
+                    to accept what is available or decline the order entirely.
                   </p>
                 </div>
               </div>
@@ -212,7 +215,6 @@ export function OrderView({ initialOrder }: OrderViewProps) {
             {/* ── Section card: Order details ── */}
             <div className="bg-white border border-charcoal/10 rounded-[14px] overflow-hidden mb-5">
 
-              {/* Card header */}
               <div className="flex items-center gap-3 px-6 py-[1.1rem] border-b border-charcoal/10">
                 <div className="w-8 h-8 rounded-lg bg-[rgba(200,169,110,0.08)] flex items-center justify-center shrink-0">
                   <svg
@@ -242,7 +244,6 @@ export function OrderView({ initialOrder }: OrderViewProps) {
                 </span>
               </div>
 
-              {/* Card body — customer + delivery info */}
               <div className="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                 <div>
                   <p className="text-[0.62rem] tracking-[0.18em] uppercase text-warmgray mb-1">
@@ -282,7 +283,6 @@ export function OrderView({ initialOrder }: OrderViewProps) {
             {/* ── Section card: Items ── */}
             <div className="bg-white border border-charcoal/10 rounded-[14px] overflow-hidden mb-5">
 
-              {/* Card header */}
               <div className="flex items-center gap-3 px-6 py-[1.1rem] border-b border-charcoal/10">
                 <div className="w-8 h-8 rounded-lg bg-[rgba(200,169,110,0.08)] flex items-center justify-center shrink-0">
                   <svg
@@ -309,18 +309,18 @@ export function OrderView({ initialOrder }: OrderViewProps) {
                 </span>
               </div>
 
-              {/* Items list */}
               <div className="px-6">
                 {order.items.map((item) => (
                   <ItemRow key={item.id} item={item} />
                 ))}
               </div>
 
-              {/* Totals */}
               <div className="px-6 py-5 border-t border-charcoal/10 flex flex-col gap-2.5">
-                {hasUnavailableItems && (
+                {(hasUnavailableItems || hasPartialItems) && (
                   <p className="text-[0.72rem] text-warmgray mb-1">
-                    Unavailable items are excluded from the total.
+                    {hasUnavailableItems
+                      ? "Unavailable items are excluded from the total."
+                      : "Total reflects the revised available quantities."}
                   </p>
                 )}
                 <div className="flex justify-between items-baseline">
@@ -328,7 +328,7 @@ export function OrderView({ initialOrder }: OrderViewProps) {
                     className="text-[1.15rem] font-semibold text-charcoal"
                     style={{ fontFamily: "var(--font-cormorant), Georgia, serif" }}
                   >
-                    {hasUnavailableItems ? "Total (available items)" : "Total"}
+                    {hasUnavailableItems || hasPartialItems ? "Revised Total" : "Total"}
                   </span>
                   <span
                     className="text-[1.15rem] font-semibold text-charcoal"
@@ -340,7 +340,6 @@ export function OrderView({ initialOrder }: OrderViewProps) {
               </div>
             </div>
 
-            {/* ── Accept / Decline actions — only for PARTIALLY_CONFIRMED ── */}
             {isPartiallyConfirmed && (
               <div className="bg-white border border-charcoal/10 rounded-[14px] overflow-hidden mb-5">
                 <div className="flex items-center gap-3 px-6 py-[1.1rem] border-b border-charcoal/10">
@@ -377,14 +376,13 @@ export function OrderView({ initialOrder }: OrderViewProps) {
               </div>
             )}
 
-            {/* ── Contact note — always shown ── */}
             <p className="text-center text-[0.75rem] text-warmgray leading-relaxed">
               Questions about your order? Contact the shop via{" "}
               {contactLinks === null ? (
-                // Loading — keep the sentence intact with muted placeholder text
+                // Still loading — keep the sentence intact with a muted placeholder.
                 <span className="text-warmgray/40">WhatsApp or phone</span>
               ) : contactLinks === false ? (
-                // Fetch failed — omit links so we never show dead or fake URLs
+                // Fetch failed — omit links rather than show a dead URL.
                 <span>WhatsApp or phone</span>
               ) : (
                 <>
@@ -409,8 +407,7 @@ export function OrderView({ initialOrder }: OrderViewProps) {
             </p>
 
             {/* ── Back to shop ── */}
-            <div className="flex justify-center mt-6">
-              <Link
+            <div className="flex justify-center mt-6">              <Link
                 href="/"
                 className="inline-flex items-center gap-2 text-[0.72rem] tracking-[0.1em] uppercase text-warmgray hover:text-charcoal transition-colors duration-200"
               >

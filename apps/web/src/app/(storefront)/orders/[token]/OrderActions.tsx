@@ -146,8 +146,8 @@ export function OrderActions({ publicToken, onUpdate }: OrderActionsProps) {
       </div>
 
       <p className="text-[0.68rem] text-warmgray text-center mt-3 leading-relaxed">
-        Accepting confirms you&apos;re happy with the available items. Declining
-        cancels the order entirely.
+        Accepting confirms you&apos;re happy with the revised quantities and available items.
+        Declining cancels the order entirely.
       </p>
     </div>
   );

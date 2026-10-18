@@ -181,9 +181,15 @@ export function ProductFormModal({ mode, product, onSuccess, onClose }: ProductF
     };
   }, [imagePreview]);
 
-  useEffect(() => {
+          useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && !isSubmitting) onClose();
+      // Do not close the modal when Escape is fired from inside a <select>
+      // element — some browsers bubble the Escape keydown to document when
+      // the native dropdown dismisses without a selection, which would
+      // otherwise close the whole modal unintentionally.
+      if (e.key === "Escape" && !isSubmitting && !(e.target instanceof HTMLSelectElement)) {
+        onClose();
+      }
     }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
@@ -450,28 +456,38 @@ export function ProductFormModal({ mode, product, onSuccess, onClose }: ProductF
               <label htmlFor="pf-category" className="block font-barlow uppercase mb-1.5" style={{ fontSize: "0.68rem", letterSpacing: "0.2em", color: "var(--warmgray)" }}>
                 Category <span aria-hidden="true" style={{ color: "#b05c3a" }}>*</span>
               </label>
-              <select
-                id="pf-category"
-                value={categoryId}
-                onChange={(e) => { setCategoryId(e.target.value); clearFieldError("categoryId"); }}
-                disabled={isSubmitting || categoriesLoading}
-                aria-describedby={fieldErrors.categoryId ? "pf-category-err" : undefined}
-                aria-invalid={!!fieldErrors.categoryId}
-                className="w-full border bg-white px-3 py-2.5 font-barlow text-charcoal outline-none transition-colors focus:border-charcoal/40 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-                style={{
-                  ...inputStyle(!!fieldErrors.categoryId),
-                  appearance: "none",
-                  backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6860' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "right 0.75rem center",
-                  paddingRight: "2.5rem",
-                }}
-              >
-                <option value="">{categoriesLoading ? "Loading…" : "Select a category"}</option>
-                {categories?.map((cat) => (
-                  <option key={cat.id} value={String(cat.id)}>{cat.name}</option>
-                ))}
-              </select>
+              {/* Wrap in a relative container so the decorative arrow SVG can be
+                  absolutely positioned without intercepting pointer events on the select. */}
+              <div className="relative">
+                <select
+                  id="pf-category"
+                  value={categoryId}
+                  onChange={(e) => { setCategoryId(e.target.value); clearFieldError("categoryId"); }}
+                  disabled={isSubmitting || categoriesLoading}
+                  aria-describedby={fieldErrors.categoryId ? "pf-category-err" : undefined}
+                  aria-invalid={!!fieldErrors.categoryId}
+                  className="w-full border bg-white px-3 py-2.5 font-barlow text-charcoal outline-none transition-colors focus:border-charcoal/40 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 appearance-none"
+                  style={{
+                    ...inputStyle(!!fieldErrors.categoryId),
+                    paddingRight: "2.5rem",
+                  }}
+                >
+                  <option value="">{categoriesLoading ? "Loading…" : "Select a category"}</option>
+                  {categories?.map((cat) => (
+                    <option key={cat.id} value={String(cat.id)}>{cat.name}</option>
+                  ))}
+                </select>
+                {/* Decorative chevron — pointer-events: none so all clicks
+                    pass through to the <select> element beneath it. */}
+                <span
+                  className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3"
+                  aria-hidden="true"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b6860" strokeWidth="2">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </span>
+              </div>
               {fieldErrors.categoryId && (
                 <p id="pf-category-err" className="mt-1.5 font-barlow" style={{ fontSize: "0.75rem", color: "#b05c3a" }} role="alert">
                   {fieldErrors.categoryId}

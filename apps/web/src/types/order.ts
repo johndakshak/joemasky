@@ -24,6 +24,7 @@ export interface OrderItem {
   productName: string;
   unitPrice: string;
   quantity: number;
+  availableQuantity: number | null;
   availability: ItemAvailability;
   selectedSize: string | null;
   selectedColor: string | null;

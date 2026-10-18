@@ -5,16 +5,10 @@ import * as orderService from "../services/order.service"
 import { Prisma } from "../generated/prisma/client";
 import { calculateOrderTotal } from "../utils/order";
 
-// CREATE ORDER
 export async function createOrder(req: Request, res: Response) {
-
   try {
-
     if (!req.body || typeof req.body !== "object") {
-      return res.status(400).json({
-        success: false,
-        message: "Request body is required"
-      });
+      return res.status(400).json({ success: false, message: "Request body is required" });
     }
 
     const { customerName, customerPhone, deliveryMethod, deliveryInfo, items } = req.body;
@@ -26,7 +20,7 @@ export async function createOrder(req: Request, res: Response) {
 
     const phoneError = validatePhone(customerPhone);
     if (phoneError) {
-    return res.status(400).json({ success: false, message: phoneError });
+      return res.status(400).json({ success: false, message: phoneError });
     }
 
     if (deliveryMethod !== "PICKUP" && deliveryMethod !== "DELIVERY") {
@@ -44,29 +38,25 @@ export async function createOrder(req: Request, res: Response) {
     }
 
     if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "items must be a non-empty array"
-      });
+      return res.status(400).json({ success: false, message: "items must be a non-empty array" });
     }
 
     for (const item of items) {
-        if (
-            typeof item !== "object" ||
-            item === null ||
-            typeof item.productId !== "number" ||
-            typeof item.quantity !== "number" ||
-            item.quantity <= 0
-        ) {
-            return res.status(400).json({
-            success: false,
-            message: "Each item must have a valid productId and a positive quantity"
-            });
-        }
+      if (
+        typeof item !== "object" ||
+        item === null ||
+        typeof item.productId !== "number" ||
+        typeof item.quantity !== "number" ||
+        item.quantity <= 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Each item must have a valid productId and a positive quantity"
+        });
+      }
     }
 
     const productIds = items.map((item: any) => item.productId);
-
     const products = await orderService.findProductsByIds(productIds);
 
     const foundIds = products.map(p => p.id);
@@ -79,11 +69,9 @@ export async function createOrder(req: Request, res: Response) {
       });
     }
 
-    // Validate selectedSize and selectedColor for each item against the product's available options
     for (const item of items) {
       const product = products.find(p => p.id === item.productId)!;
 
-      // If the product has sizes, the customer must pick one
       if (product.sizes.length > 0) {
         if (!item.selectedSize || typeof item.selectedSize !== "string") {
           return res.status(400).json({
@@ -99,7 +87,6 @@ export async function createOrder(req: Request, res: Response) {
         }
       }
 
-      // If the product has colors, the customer must pick one
       if (product.colors.length > 0) {
         if (!item.selectedColor || typeof item.selectedColor !== "string") {
           return res.status(400).json({
@@ -127,72 +114,43 @@ export async function createOrder(req: Request, res: Response) {
     const order = await orderService.createOrder(orderInput, products);
 
     if (!order) {
-      return res.status(500).json({
-        success: false,
-        message: "Failed to create order"
-      });
-    }    
+      return res.status(500).json({ success: false, message: "Failed to create order" });
+    }
 
     return res.status(201).json({
       success: true,
-      data: {
-        ...order,
-        totalAmount: calculateOrderTotal(order.items),
-      }
+      data: { ...order, totalAmount: calculateOrderTotal(order.items) }
     });
-
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to create order"
-    });
+    return res.status(500).json({ success: false, message: "Failed to create order" });
   }
 }
 
-// GET ORDER BY PUBLIC TOKEN
 export async function getOrderByPublicToken(req: Request, res: Response) {
-
   try {
-
     const { publicToken } = req.params;
 
     if (typeof publicToken !== "string") {
-        return res.status(400).json({
-            success: false,
-            message: "Invalid order token"
-        });
-    }    
+      return res.status(400).json({ success: false, message: "Invalid order token" });
+    }
 
     const order = await orderService.findOrderByPublicToken(publicToken);
 
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found"
-      });
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
     return res.status(200).json({
       success: true,
-      data: {
-        ...order,
-        totalAmount: calculateOrderTotal(order.items),
-      }
+      data: { ...order, totalAmount: calculateOrderTotal(order.items) }
     });
-
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch order"
-    });
+    return res.status(500).json({ success: false, message: "Failed to fetch order" });
   }
 }
 
-// GET ALL ORDERS (ADMIN)
 export async function getAllOrders(req: Request, res: Response) {
   try {
     const orders = await orderService.findAllOrders();
@@ -203,73 +161,46 @@ export async function getAllOrders(req: Request, res: Response) {
     }));
 
     return res.status(200).json({ success: true, data: ordersWithTotals });
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, message: "Failed to fetch orders" });
   }
 }
 
-// GET ORDER BY ID (ADMIN)
 export async function getOrderById(req: Request, res: Response) {
-
   try {
-
     const id = Number(req.params.id);
 
     if (isNaN(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid order ID"
-      });
+      return res.status(400).json({ success: false, message: "Invalid order ID" });
     }
 
     const order = await orderService.findOrderById(id);
 
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found"
-      });
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
     return res.status(200).json({
       success: true,
-      data: {
-        ...order,
-        totalAmount: calculateOrderTotal(order.items),
-      }
+      data: { ...order, totalAmount: calculateOrderTotal(order.items) }
     });
-
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch order"
-    });
+    return res.status(500).json({ success: false, message: "Failed to fetch order" });
   }
 }
 
-// UPDATE ORDER STATUS (ADMIN)
 export async function updateOrderStatus(req: Request, res: Response) {
-
   try {
-
     const id = Number(req.params.id);
 
     if (isNaN(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid order ID"
-      });
+      return res.status(400).json({ success: false, message: "Invalid order ID" });
     }
 
     if (!req.body || typeof req.body !== "object") {
-      return res.status(400).json({
-        success: false,
-        message: "Request body is required"
-      });
+      return res.status(400).json({ success: false, message: "Request body is required" });
     }
 
     const { status } = req.body;
@@ -289,10 +220,7 @@ export async function updateOrderStatus(req: Request, res: Response) {
     const existingOrder = await orderService.findOrderById(id);
 
     if (!existingOrder) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found"
-      });
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
     const validTransitions: Record<string, string[]> = {
@@ -306,11 +234,8 @@ export async function updateOrderStatus(req: Request, res: Response) {
     };
 
     if (status === existingOrder.status) {
-      return res.status(409).json({
-        success: false,
-        message: `Order is already ${status}`
-      });
-    }    
+      return res.status(409).json({ success: false, message: `Order is already ${status}` });
+    }
 
     const allowedNext = validTransitions[existingOrder.status];
 
@@ -323,44 +248,27 @@ export async function updateOrderStatus(req: Request, res: Response) {
 
     const order = await orderService.updateOrderStatus(id, status);
 
-    return res.status(200).json({
-      success: true,
-      data: order
-    });
-
-  }
-  catch (error) {
+    return res.status(200).json({ success: true, data: order });
+  } catch (error) {
     console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to update order status"
-    });
+    return res.status(500).json({ success: false, message: "Failed to update order status" });
   }
 }
 
-// MARK ITEM AVAILABILITY (ADMIN)
 export async function markItemAvailability(req: Request, res: Response) {
-
   try {
-
     const orderId = Number(req.params.orderId);
     const itemId = Number(req.params.itemId);
 
     if (isNaN(orderId) || isNaN(itemId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid order ID or item ID"
-      });
+      return res.status(400).json({ success: false, message: "Invalid order ID or item ID" });
     }
 
     if (!req.body || typeof req.body !== "object") {
-      return res.status(400).json({
-        success: false,
-        message: "Request body is required"
-      });
-    }    
+      return res.status(400).json({ success: false, message: "Request body is required" });
+    }
 
-    const { availability } = req.body;
+    const { availability, availableQuantity } = req.body;
 
     if (availability !== "AVAILABLE" && availability !== "UNAVAILABLE") {
       return res.status(400).json({
@@ -369,31 +277,54 @@ export async function markItemAvailability(req: Request, res: Response) {
       });
     }
 
+    if (availableQuantity != null && availability === "UNAVAILABLE") {
+      return res.status(400).json({
+        success: false,
+        message: "availableQuantity cannot be set when availability is UNAVAILABLE"
+      });
+    }
+
+    if (availableQuantity != null) {
+      if (
+        typeof availableQuantity !== "number" ||
+        !Number.isInteger(availableQuantity) ||
+        availableQuantity <= 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "availableQuantity must be a positive integer"
+        });
+      }
+    }
+
     const order = await orderService.findOrderById(orderId);
 
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found"
-      });
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
-    if (order.status !== "PENDING" && order.status !== "UNAVAILABLE") {
+    const reviewableStatuses = ["PENDING", "UNAVAILABLE", "PARTIALLY_CONFIRMED"];
+    if (!reviewableStatuses.includes(order.status)) {
       return res.status(400).json({
         success: false,
-        message: "Order is not in a reviewable state"
+        message: "Availability can only be edited while the order is Pending, Unavailable, or Partially Confirmed"
       });
     }
 
-    const item = await orderService.markItemAvailability(orderId, itemId, availability);
+    if (availableQuantity != null) {
+      const item = order.items.find((i) => i.id === itemId);
+      if (item && availableQuantity >= item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: "availableQuantity must be less than the ordered quantity — use availability AVAILABLE without availableQuantity if the full quantity is available"
+        });
+      }
+    }
 
-    return res.status(200).json({
-      success: true,
-      data: item
-    });
+    const item = await orderService.markItemAvailability(orderId, itemId, availability, availableQuantity ?? null);
 
-  }
-  catch (error) {
+    return res.status(200).json({ success: true, data: item });
+  } catch (error) {
     if (error instanceof Error && error.message === "ORDER_STATE_CHANGED") {
       return res.status(409).json({
         success: false,
@@ -402,165 +333,102 @@ export async function markItemAvailability(req: Request, res: Response) {
     }
 
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-      return res.status(404).json({
-        success: false,
-        message: "Item not found"
-      });
+      return res.status(404).json({ success: false, message: "Item not found" });
     }
 
     if (error instanceof Error && error.message === "ITEM_NOT_IN_ORDER") {
-      return res.status(404).json({
-        success: false,
-        message: "Item not found in this order"
-      });
-    }    
+      return res.status(404).json({ success: false, message: "Item not found in this order" });
+    }
 
     console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to update item availability"
-    });
+    return res.status(500).json({ success: false, message: "Failed to update item availability" });
   }
 }
 
-// REVIEW ORDER (ADMIN)
 export async function reviewOrder(req: Request, res: Response) {
-
   try {
-
     const orderId = Number(req.params.orderId);
 
     if (isNaN(orderId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid order ID"
-      });
+      return res.status(400).json({ success: false, message: "Invalid order ID" });
     }
 
     const updatedOrder = await orderService.reviewOrder(orderId);
 
     if (!updatedOrder) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found"
-      });
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
-    return res.status(200).json({
-      success: true,
-      data: updatedOrder
-    });
-
-  }
-  catch (error) {
-
+    return res.status(200).json({ success: true, data: updatedOrder });
+  } catch (error) {
     if (error instanceof Error && error.message === "ORDER_HAS_NO_ITEMS") {
-      return res.status(400).json({
+      return res.status(400).json({ success: false, message: "Cannot review an order with no items" });
+    }
+
+    if (error instanceof Error && error.message === "ORDER_NOT_REVIEWABLE") {
+      return res.status(409).json({
         success: false,
-        message: "Cannot review an order with no items"
+        message: "Order cannot be reviewed in its current state — only Pending, Unavailable, or Partially Confirmed orders can be finalised"
       });
     }
 
     console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to review order"
-    });
+    return res.status(500).json({ success: false, message: "Failed to review order" });
   }
 }
 
-// ACCEPT ORDER (CUSTOMER)
 export async function acceptOrder(req: Request, res: Response) {
-
   try {
-
     const { publicToken } = req.params;
 
     if (typeof publicToken !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid order token"
-      });
+      return res.status(400).json({ success: false, message: "Invalid order token" });
     }
 
     const order = await orderService.respondToOrder(publicToken, "ACCEPT");
 
     return res.status(200).json({
       success: true,
-      data: {
-        ...order,
-        totalAmount: calculateOrderTotal(order.items),
-      }
+      data: { ...order, totalAmount: calculateOrderTotal(order.items) }
     });
-
-  }
-  catch (error) {
+  } catch (error) {
     if (error instanceof Error && error.message === "ORDER_NOT_FOUND") {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found"
-      });
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
     if (error instanceof Error && error.message === "ORDER_NOT_REVIEWABLE") {
-      return res.status(409).json({
-        success: false,
-        message: "This order is not awaiting confirmation"
-      });
+      return res.status(409).json({ success: false, message: "This order is not awaiting confirmation" });
     }
 
     console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to accept order"
-    });
+    return res.status(500).json({ success: false, message: "Failed to accept order" });
   }
 }
 
-// DECLINE ORDER (CUSTOMER)
 export async function declineOrder(req: Request, res: Response) {
-
   try {
-
     const { publicToken } = req.params;
 
     if (typeof publicToken !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid order token"
-      });
+      return res.status(400).json({ success: false, message: "Invalid order token" });
     }
 
     const order = await orderService.respondToOrder(publicToken, "DECLINE");
 
     return res.status(200).json({
       success: true,
-      data: {
-        ...order,
-        totalAmount: calculateOrderTotal(order.items),
-      }
+      data: { ...order, totalAmount: calculateOrderTotal(order.items) }
     });
-
-  }
-  catch (error) {
+  } catch (error) {
     if (error instanceof Error && error.message === "ORDER_NOT_FOUND") {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found"
-      });
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
     if (error instanceof Error && error.message === "ORDER_NOT_REVIEWABLE") {
-      return res.status(409).json({
-        success: false,
-        message: "This order is not awaiting confirmation"
-      });
+      return res.status(409).json({ success: false, message: "This order is not awaiting confirmation" });
     }
 
     console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to decline order"
-    });
+    return res.status(500).json({ success: false, message: "Failed to decline order" });
   }
 }

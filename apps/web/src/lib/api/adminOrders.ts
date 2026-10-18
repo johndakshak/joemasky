@@ -1,32 +1,52 @@
-import type { Order } from "@/types/order";
+import type { Order, OrderItem, OrderStatus } from "@/types/order";
 
 type AuthenticatedClient = <T>(path: string, options?: RequestInit) => Promise<T>;
 
-/**
- * getAllOrders
- *
- * Fetches all orders for the admin dashboard.
- * GET /admin/Orders
- *
- * Requires an authenticated client from useAdminClient().
- * Returns an Order array sorted by createdAt desc (server-side).
- * Each order includes a server-computed totalAmount (available items only).
- */
 export async function getAllOrders(client: AuthenticatedClient): Promise<Order[]> {
   return client<Order[]>("/admin/Orders");
 }
 
-/**
- * getOrderById
- *
- * Fetches a single order by database ID.
- * GET /admin/order/:id
- *
- * Requires an authenticated client from useAdminClient().
- */
 export async function getOrderById(
   client: AuthenticatedClient,
   id: number
 ): Promise<Order> {
   return client<Order>(`/admin/order/${id}`);
+}
+
+export async function updateOrderStatus(
+  client: AuthenticatedClient,
+  id: number,
+  status: OrderStatus
+): Promise<Order> {
+  return client<Order>(`/admin/orderStatus/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+}
+
+// availableQuantity is only sent for AVAILABLE items; UNAVAILABLE + quantity is rejected by the API.
+export async function markItemAvailability(
+  client: AuthenticatedClient,
+  orderId: number,
+  itemId: number,
+  availability: "AVAILABLE" | "UNAVAILABLE",
+  availableQuantity?: number | null
+): Promise<OrderItem> {
+  const body: Record<string, unknown> = { availability };
+  if (availability === "AVAILABLE" && availableQuantity != null) {
+    body.availableQuantity = availableQuantity;
+  }
+  return client<OrderItem>(`/order/${orderId}/items/${itemId}/availability`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function finaliseReview(
+  client: AuthenticatedClient,
+  orderId: number
+): Promise<Order> {
+  return client<Order>(`/order/${orderId}/review-orders`, {
+    method: "POST",
+  });
 }

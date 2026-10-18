@@ -22,4 +22,6 @@ COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 5000
 
-CMD ["node", "dist/server.js"]
+# Apply any pending migrations before starting the server.
+# prisma migrate deploy is idempotent — it is safe to run on every start.
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
