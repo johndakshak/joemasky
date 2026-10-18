@@ -19,6 +19,7 @@ RUN npm install --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src/generated ./src/generated
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma7.config.ts ./prisma7.config.ts
 
 EXPOSE 5000
 
