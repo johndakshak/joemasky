@@ -22,6 +22,15 @@ COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 5000
 
-# Apply any pending migrations before starting the server.
-# prisma migrate deploy is idempotent — it is safe to run on every start.
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
+# Apply pending migrations, then start the API server.
+# DIRECT_URL must be set as an environment variable on this service;
+# it is not present in the image and is never committed to source control.
+CMD ["sh", "-c", "\
+  if [ -z \"$DIRECT_URL\" ]; then \
+    echo 'ERROR: DIRECT_URL environment variable is not set.'; \
+    echo 'Set it in your Render service environment variables before deploying.'; \
+    exit 1; \
+  fi && \
+  npx prisma migrate deploy && \
+  node dist/server.js \
+"]
