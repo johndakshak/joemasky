@@ -356,6 +356,7 @@ export function ProductFormModal({ mode, product, onSuccess, onClose }: ProductF
         ref={dialogRef}
         className="relative w-full max-w-2xl bg-white z-10 rounded-xl overflow-hidden"
         style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.28)" }}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-8 py-5" style={{ background: "#1c1a14" }}>
           <h2
