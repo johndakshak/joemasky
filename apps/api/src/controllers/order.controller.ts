@@ -359,7 +359,16 @@ export async function reviewOrder(req: Request, res: Response) {
       return res.status(404).json({ success: false, message: "Order not found" });
     }
 
-    return res.status(200).json({ success: true, data: updatedOrder });
+    const fullOrder = await orderService.findOrderById(updatedOrder.id);
+
+    if (!fullOrder) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: { ...fullOrder, totalAmount: calculateOrderTotal(fullOrder.items) },
+    });
   } catch (error) {
     if (error instanceof Error && error.message === "ORDER_HAS_NO_ITEMS") {
       return res.status(400).json({ success: false, message: "Cannot review an order with no items" });
