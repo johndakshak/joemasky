@@ -3,7 +3,8 @@
 -- stores only its SHA-256 hex digest here, and returns
 -- the raw token to the Super Admin once (never persisted).
 
--- Drop the old unique constraint and column, then add the new one.
-ALTER TABLE "AdminInvite" DROP CONSTRAINT "AdminInvite_token_key";
+-- The original migration created the uniqueness guarantee as a unique INDEX
+-- (not a named CONSTRAINT), so we must DROP INDEX, not DROP CONSTRAINT.
+DROP INDEX "AdminInvite_token_key";
 ALTER TABLE "AdminInvite" RENAME COLUMN "token" TO "tokenHash";
 CREATE UNIQUE INDEX "AdminInvite_tokenHash_key" ON "AdminInvite"("tokenHash");
