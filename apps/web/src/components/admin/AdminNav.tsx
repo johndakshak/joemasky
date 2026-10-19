@@ -9,7 +9,10 @@ import {
   Tag,
   Users,
   Settings,
+  UsersRound,
 } from "lucide-react";
+import { useAdminAuthStore } from "@/stores/admin-auth-store";
+import { AdminRole } from "@/types/admin";
 
 interface NavItem {
   href: string;
@@ -26,6 +29,12 @@ const MAIN_NAV: NavItem[] = [
   { href: "/admin/products",   label: "Products",   icon: Package         },
   { href: "/admin/categories", label: "Categories", icon: Tag             },
   { href: "/admin/customers",  label: "Customers",  icon: Users           },
+];
+
+// Super Admin-only nav items — rendered only when the current admin has
+// the SUPER_ADMIN role. Never shown to regular admins.
+const SUPER_ADMIN_NAV: NavItem[] = [
+  { href: "/admin/team", label: "Team", icon: UsersRound },
 ];
 
 const SETTINGS_NAV: NavItem[] = [
@@ -71,6 +80,8 @@ function NavLink({
 
 export function AdminNav({ onNavigate }: AdminNavProps) {
   const pathname = usePathname();
+  const admin = useAdminAuthStore((state) => state.admin);
+  const isSuperAdmin = admin?.role === AdminRole.SUPER_ADMIN;
 
   // Exact match for /admin so sub-routes don't keep Overview active.
   // All other routes use startsWith so nested pages stay highlighted.
@@ -101,6 +112,28 @@ export function AdminNav({ onNavigate }: AdminNavProps) {
           ))}
         </ul>
       </div>
+
+      {/* ── Super Admin section — hidden from regular admins ── */}
+      {isSuperAdmin && (
+        <div>
+          <p
+            className="text-[0.55rem] tracking-[0.3em] uppercase px-3 mb-2 font-barlow"
+            style={{ color: "rgba(255,255,255,0.22)" }}
+          >
+            Super Admin
+          </p>
+          <ul className="space-y-0.5">
+            {SUPER_ADMIN_NAV.map((item) => (
+              <NavLink
+                key={item.href}
+                item={item}
+                isActive={isActive(item.href)}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* ── Settings section ── */}
       <div>

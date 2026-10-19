@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma";
 import { CreateAdminData } from "../types/admin.types";
+import { hashToken } from "./superAdmin.service";
 
 // FIND ADMIN BY EMAIL
 export async function findAdminByEmail(email: string) {
@@ -15,18 +16,22 @@ export async function createAdmin(data: CreateAdminData) {
   });
 }
 
-
-// FIND INVITE BY TOKEN
-export async function findInviteByToken(token: string) {
+// FIND INVITE BY RAW TOKEN
+// Hashes the supplied raw token before querying so the database never holds
+// the plaintext value that an invitee would use to register.
+export async function findInviteByToken(rawToken: string) {
+  const tokenHash = hashToken(rawToken);
   return prisma.adminInvite.findUnique({
-    where: { token },
+    where: { tokenHash },
   });
 }
 
 // MARK INVITE AS USED
-export async function markInviteAsUsed(token: string, usedById: number) {
+// Accepts the raw token and hashes it internally to locate the record.
+export async function markInviteAsUsed(rawToken: string, usedById: number) {
+  const tokenHash = hashToken(rawToken);
   return prisma.adminInvite.update({
-    where: { token },
+    where: { tokenHash },
     data: {
       usedById,
       usedAt: new Date(),
