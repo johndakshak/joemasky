@@ -145,9 +145,9 @@ function SidebarContent({
         {/* Sign out */}
         <button
           onClick={onLogout}
-          className="flex-shrink-0 transition-colors focus-visible:outline
-                     focus-visible:outline-2 focus-visible:outline-offset-2
-                     focus-visible:outline-gold"
+          className="flex-shrink-0 transition-colors cursor-pointer
+                     focus-visible:outline focus-visible:outline-2
+                     focus-visible:outline-offset-2 focus-visible:outline-gold"
           style={{ color: "rgba(255,255,255,0.30)" }}
           onMouseOver={(e) => (e.currentTarget.style.color = "var(--gold)")}
           onMouseOut={(e) =>
@@ -292,7 +292,7 @@ export function AdminShell({ children }: AdminShellProps) {
             onClick={handleLogout}
             className="w-9 h-9 flex items-center justify-center border
                        border-charcoal/15 text-warmgray hover:border-gold
-                       hover:text-gold transition-colors"
+                       hover:text-gold transition-colors cursor-pointer"
             aria-label="Sign out"
             title="Sign out"
           >
