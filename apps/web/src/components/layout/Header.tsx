@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Search, ShoppingCart } from "lucide-react";
+import { Menu, Search, ShoppingCart, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -14,6 +14,7 @@ import { PageContainer } from "./Page-Container";
 import { Logo } from "./Logo";
 import { useEffect, useState } from "react";
 import { useCartStore } from "@/stores/cart-store";
+import { useAdminAuthStore } from "@/stores/admin-auth-store";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -28,6 +29,11 @@ export function Header() {
   const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const cartCount = useCartStore((state) => state.items.length);
+
+  // Admin auth state — gated behind `mounted` to avoid hydration mismatches
+  // (the Zustand persist store reads sessionStorage, which only exists in
+  // the browser). Same pattern already used for the cart badge above.
+  const isAdmin = useAdminAuthStore((s) => s.isAuthenticated);
 
   useEffect(() => {
     setMounted(true);
@@ -64,6 +70,23 @@ export function Header() {
             <Button variant="ghost" size="icon" className="text-charcoal hover:text-gold">
               <Search className="h-[17px] w-[17px]" />
             </Button>
+
+            {/* Dashboard button — visible only to authenticated admins.
+                Gated by `mounted` to avoid SSR/client hydration mismatch. */}
+            {mounted && isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                nativeButton={false}
+                render={<Link href="/admin" />}
+                className="text-charcoal hover:text-gold"
+              >
+                <LayoutDashboard className="h-[17px] w-[17px]" />
+                <span className="hidden lg:inline tracking-[0.18em] uppercase text-xs">
+                  Dashboard
+                </span>
+              </Button>
+            )}
 
             <Button
               variant="ghost"
@@ -103,6 +126,15 @@ export function Header() {
                       {link.label}
                     </Link>
                   ))}
+                  {/* Dashboard link — visible only to authenticated admins. */}
+                  {mounted && isAdmin && (
+                    <Link
+                      href="/admin"
+                      className="font-bebas text-3xl tracking-widest text-cream hover:text-gold transition-colors"
+                    >
+                      Dashboard
+                    </Link>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>

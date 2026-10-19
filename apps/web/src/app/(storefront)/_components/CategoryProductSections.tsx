@@ -99,11 +99,14 @@ export function CategoryProductSections() {
     );
   }
 
-  // Build per-category slices. Skip categories that have no products at all.
+  // Build per-category product lists. Skip categories that have no products.
+  // No artificial limit — the grid wraps rows automatically and the backend
+  // returns all products. Previously .slice(0, 4) capped each category at 4
+  // products, hiding valid products (e.g. Jerseys had 7 but only 4 showed).
   const sections = sortedCategories
     .map((category) => ({
       category,
-      products: products.filter((p) => p.categoryId === category.id).slice(0, 4),
+      products: products.filter((p) => p.categoryId === category.id),
     }))
     .filter((s) => s.products.length > 0);
 

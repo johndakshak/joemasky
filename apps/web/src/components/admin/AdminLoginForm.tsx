@@ -127,8 +127,9 @@ export function AdminLoginForm() {
 
       // Show the success toast, then navigate after a short pause so the
       // user sees confirmation before the page changes.
+      // Redirect to the storefront homepage instead of the admin dashboard.
       toast.success("Login successful! Welcome back.");
-      setTimeout(() => router.push("/admin"), 1000);
+      setTimeout(() => router.push("/"), 1000);
     } catch (err) {
       if (err instanceof ApiError) {
         switch (err.status) {

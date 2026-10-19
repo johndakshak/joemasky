@@ -72,7 +72,7 @@ function EditorialCard({
           </h3>
         </Link>
         <div className="flex items-center justify-between mt-1">
-          <p className="text-gold text-[0.82rem] font-barlow">
+          <p className="text-white text-[0.82rem] font-barlow">
             ₦{Number(product.price).toLocaleString()}
           </p>
           <p

@@ -110,13 +110,18 @@ export function ProtectedAdminRoute({ children }: ProtectedAdminRouteProps) {
 // Rendered only when a definitively unauthenticated state is confirmed after
 // hydration. Isolating router.push into a useEffect keeps the render cycle
 // clean and avoids calling navigation imperatively during render.
+//
+// Passes the current pathname as ?from= so GuestOnlyRoute can redirect the
+// admin back here after they re-authenticate.
 
 function RedirectToLogin({ logout }: { logout: () => void }) {
   const router = useRouter();
 
   useEffect(() => {
     logout();
-    router.push("/admin/login");
+    const currentPath = window.location.pathname + window.location.search + window.location.hash;
+    const loginUrl = `/admin/login?from=${encodeURIComponent(currentPath)}`;
+    router.push(loginUrl);
   }, [logout, router]);
 
   // Invisible while the redirect effect fires — same spinner as the
