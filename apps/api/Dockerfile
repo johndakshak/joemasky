@@ -20,18 +20,11 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src/generated ./src/generated
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma7.config.ts ./prisma7.config.ts
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
 
 EXPOSE 5000
 
-# Apply pending migrations, then start the API server.
-# DIRECT_URL must be set as an environment variable on this service;
-# it is not present in the image and is never committed to source control.
-CMD ["sh", "-c", "\
-  if [ -z \"$DIRECT_URL\" ]; then \
-    echo 'ERROR: DIRECT_URL environment variable is not set.'; \
-    echo 'Set it in your Render service environment variables before deploying.'; \
-    exit 1; \
-  fi && \
-  npx prisma migrate deploy && \
-  node dist/server.js \
-"]
+# start.sh validates DIRECT_URL, applies pending Prisma migrations, and
+# starts the API server only after migrations succeed.
+CMD ["sh", "./start.sh"]
