@@ -51,7 +51,7 @@ export function LandingProductCard({ product, badge, delayClass = "" }: LandingP
       ) : null}
 
       {/* Image */}
-      <Link href={`/products/${product.id}`} className="block">
+      <Link href={`/products/${product.id}`} className="block cursor-pointer">
         <div className="overflow-hidden aspect-[3/4]">
           <Image
             src={product.imageUrl}
@@ -65,15 +65,19 @@ export function LandingProductCard({ product, badge, delayClass = "" }: LandingP
 
       {/*
        * Hover overlay.
+       * The overlay itself stays pointer-events-none so it never blocks
+       * the image and info links underneath. Only the inner button/link
+       * becomes interactive on hover.
+       *
        * - No variants needed → "Add to Cart" calls the store directly.
        * - Variants needed → button links to PDP where AddToCart handles selection.
        */}
-      <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/25 transition-all duration-300 flex items-end justify-center pb-5 pointer-events-none group-hover:pointer-events-auto">
+      <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/25 transition-all duration-300 flex items-end justify-center pb-5 pointer-events-none">
         {product.isAvailable && (
           needsVariant ? (
             <Link
               href={`/products/${product.id}`}
-              className="opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 bg-cream text-charcoal px-5 py-2.5 text-[0.68rem] tracking-[0.18em] uppercase font-barlow"
+              className="pointer-events-auto opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 bg-cream text-charcoal px-5 py-2.5 text-[0.68rem] tracking-[0.18em] uppercase font-barlow cursor-pointer"
             >
               Select Options
             </Link>
@@ -81,7 +85,7 @@ export function LandingProductCard({ product, badge, delayClass = "" }: LandingP
             <button
               type="button"
               onClick={handleAddToCart}
-              className="opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 bg-cream text-charcoal px-5 py-2.5 text-[0.68rem] tracking-[0.18em] uppercase cursor-pointer font-barlow"
+              className="pointer-events-auto opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 bg-cream text-charcoal px-5 py-2.5 text-[0.68rem] tracking-[0.18em] uppercase cursor-pointer font-barlow"
             >
               Add to Cart
             </button>
@@ -90,7 +94,7 @@ export function LandingProductCard({ product, badge, delayClass = "" }: LandingP
       </div>
 
       {/* Info */}
-      <Link href={`/products/${product.id}`} className="block pt-3 pb-2 px-1">
+      <Link href={`/products/${product.id}`} className="block cursor-pointer pt-3 pb-2 px-1">
         <h4 className="text-[0.82rem] tracking-[0.06em] font-normal mb-1 text-charcoal">
           {product.name}
         </h4>

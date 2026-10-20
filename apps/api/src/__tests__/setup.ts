@@ -18,3 +18,6 @@ process.env.DATABASE_URL            = process.env.DATABASE_URL            ?? "po
 // JWT (used by auth middleware and tests)
 process.env.JWT_SECRET              = process.env.JWT_SECRET              ?? "vitest-jwt-secret";
 process.env.JWT_EXPIRES_IN          = process.env.JWT_EXPIRES_IN          ?? "15m";
+
+// FRONTEND_URL — used by CORS to whitelist the production frontend origin.
+process.env.FRONTEND_URL           = process.env.FRONTEND_URL           ?? "https://joemasky.vercel.app";
