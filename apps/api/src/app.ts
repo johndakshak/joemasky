@@ -16,15 +16,41 @@ const app = express();
 
 app.use(express.json());
 
+// ── CORS ─────────────────────────────────────────────────────────────────────
+// Restricted, configurable CORS policy.
+//
+// - Production frontend origin is taken from the FRONTEND_URL env var.
+// - localhost:3000 is always allowed for local development.
+// - Credentials are NOT enabled: auth uses JWT in the Authorization header,
+//   not cookies, so cross-origin credentialed requests are unnecessary.
+const allowedOrigins = [
+    "http://localhost:3000",
+    ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+];
+
+app.use(
+    cors({
+        origin(origin, callback) {
+            // Allow same-origin / server-to-server requests that have no Origin header.
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+            return callback(null, false);
+        },
+        methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+    })
+);
+
+app.use(helmet());
+app.use(generalLimiter);
+
 app.get("/health", (req, res) => {
     res.status(200).json({
         status: "ok",
     });
 });
-
-app.use(cors());
-app.use(helmet());
-app.use(generalLimiter);
 
 app.use("/", productRoutes);
 app.use("/", categoryRoutes);

@@ -4,7 +4,7 @@ import type { Product } from "@/types/product";
 
 export function ProductCard({ product }: { product: Product }) {
   return (
-    <Link href={`/products/${product.id}`} className="relative overflow-hidden bg-archive group block">
+    <Link href={`/products/${product.id}`} className="relative overflow-hidden bg-archive group block cursor-pointer">
       {!product.isAvailable && (
         <span className="absolute top-3 left-3 z-10 bg-charcoal text-cream text-[0.6rem] tracking-[0.2em] uppercase px-2 py-1 font-medium">
           Unavailable
