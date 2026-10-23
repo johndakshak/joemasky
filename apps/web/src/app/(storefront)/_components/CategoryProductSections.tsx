@@ -26,6 +26,7 @@ export function CategoryProductSections() {
     data: products,
     isPending: productsPending,
     isError: productsError,
+    refetch: refetchProducts,
   } = useProducts();
 
   const {
@@ -74,16 +75,17 @@ export function CategoryProductSections() {
   if (productsError || categoriesError) {
     return (
       <section id="shop" className="px-4 sm:px-6 md:px-14 py-16 md:py-20">
-        <p className="text-warmgray text-sm py-8 text-center font-barlow">
-          Products could not be loaded. Please try again later.
-        </p>
-        <div className="flex justify-center mt-4">
-          <Link
-            href="/#shop"
-            className="inline-flex items-center gap-3 text-[0.72rem] tracking-[0.22em] uppercase text-charcoal px-10 py-[0.9rem] border border-charcoal hover:bg-charcoal hover:text-cream transition-all duration-300 font-barlow"
+        <div className="flex flex-col items-center justify-center gap-3 py-8">
+          <p className="text-warmgray text-sm text-center font-barlow">
+            Products could not be loaded. Please try again.
+          </p>
+          <button
+            type="button"
+            onClick={() => refetchProducts()}
+            className="text-[0.68rem] tracking-[0.18em] uppercase text-charcoal border border-charcoal px-6 py-2.5 hover:bg-charcoal hover:text-cream transition-colors duration-300 font-barlow font-medium"
           >
-            Browse All Products
-          </Link>
+            Try Again
+          </button>
         </div>
       </section>
     );
