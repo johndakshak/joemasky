@@ -15,8 +15,14 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
             staleTime: 60 * 1000,
             // Keep unused query data in cache for 5 minutes.
             gcTime: 5 * 60 * 1000,
-            // Retry once on failure (default 3 is excessive for a storefront).
+            // Retry once on failure (default 3 is excessive for a storefront,
+            // and each retry hits the cold Render instance again).
             retry: 1,
+            // Do not refetch when the browser tab regains focus.  On a slow
+            // backend (Render cold starts) this would trigger an unnecessary
+            // request every time the user switches tabs, causing the product
+            // list to flash or disappear while the refetch is in-flight.
+            refetchOnWindowFocus: false,
           },
         },
       })
