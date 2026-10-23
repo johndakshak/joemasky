@@ -112,21 +112,24 @@ const EDITORIAL_LABELS = ["Featured", "New In", "New In"];
 /**
  * Editorial Collection section — asymmetric 2fr + 1fr + 1fr grid.
  *
- * Uses the first 3 products regardless of availability so the layout is
- * always populated. Availability is shown on each card.
+ * Shows the 3 newest products (by createdAt) regardless of availability so
+ * the layout is always populated. Availability is shown on each card.
  *
  * Section numbering: dynamically calculates its number based on how many
  * category sections precede it (categories that have at least one product).
  */
 export function EditorialCollection() {
-  const { data: products, isPending, isError } = useProducts();
+  const { data: products, isPending, isError, refetch } = useProducts();
   const { data: categories } = useCategories();
 
   const showSkeleton = isPending;
 
-  // Take the first 3 products. No availability filter here — unavailable
-  // products are visually labelled on the card.
-  const items = products?.slice(0, 3) ?? [];
+  // Newest 3 products. No availability filter here — unavailable products
+  // are visually labelled on the card. Copy the array before sorting, because
+  // sort() changes it in place and this array is shared through the query cache.
+  const items = [...(products ?? [])]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 3);
 
   // Calculate section number: count how many category sections precede this one.
   // Only categories with products are rendered as sections, so we filter accordingly.
@@ -161,15 +164,24 @@ export function EditorialCollection() {
           <ProductCardSkeleton />
         </div>
       ) : isError ? (
-        <p className="text-warmgray text-sm py-8 text-center font-barlow">
-          Collection could not be loaded. Please try again.
-        </p>
+        <div className="flex flex-col items-center justify-center gap-3 py-8">
+          <p className="text-warmgray text-sm text-center font-barlow">
+            Collection could not be loaded. Please try again.
+          </p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="text-[0.68rem] tracking-[0.18em] uppercase text-charcoal border border-charcoal px-6 py-2.5 hover:bg-charcoal hover:text-cream transition-colors duration-300 font-barlow font-medium"
+          >
+            Try Again
+          </button>
+        </div>
       ) : items.length === 0 ? (
         <p className="text-warmgray text-sm py-8 text-center font-barlow">
           No products available.
         </p>
       ) : (
-        <div className="reveal grid grid-cols-1 lg:grid-cols-[2fr_1fr_1fr] gap-[2px]">
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr_1fr] gap-[2px]">
           {items.map((product, i) => (
             <EditorialCard
               key={product.id}
